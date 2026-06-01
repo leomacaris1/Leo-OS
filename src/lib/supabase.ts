@@ -38,6 +38,14 @@ export interface Subscription {
   created_at?: string;
 }
 
+export interface ProjectTask {
+  id: string;
+  project_id: string;
+  description: string;
+  is_completed: boolean;
+  created_at?: string;
+}
+
 export interface AgentLogEntry {
   id: string;
   level: string;
@@ -209,6 +217,72 @@ export const dbService = {
     local.push(localProject);
     setLocalData('leo-os-projects', local);
     return localProject;
+  },
+
+  // --- PROJECT TASKS ---
+  async getProjectTasks(projectId: string): Promise<ProjectTask[]> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('project_tasks')
+          .select('*')
+          .eq('project_id', projectId)
+          .order('created_at', { ascending: true });
+        
+        if (!error && data) {
+          return data as ProjectTask[];
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    return [];
+  },
+
+  async createProjectTask(task: Omit<ProjectTask, 'id'>): Promise<ProjectTask | null> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('project_tasks')
+          .insert([task])
+          .select();
+        if (!error && data && data.length > 0) {
+          return data[0] as ProjectTask;
+        }
+        console.error('Error creating task:', error);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    return null;
+  },
+
+  async updateProjectTask(id: string, updates: Partial<ProjectTask>): Promise<ProjectTask | null> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('project_tasks')
+          .update(updates)
+          .eq('id', id)
+          .select();
+        if (!error && data && data.length > 0) {
+          return data[0] as ProjectTask;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    return null;
+  },
+
+  async deleteProjectTask(id: string): Promise<void> {
+    if (supabase) {
+      try {
+        await supabase.from('project_tasks').delete().eq('id', id);
+      } catch (err) {
+        console.error(err);
+      }
+    }
   },
 
   // --- EMAILS SERVICES ---

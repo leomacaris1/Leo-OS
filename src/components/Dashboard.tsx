@@ -12,8 +12,10 @@ import {
   X,
   Sparkles,
   Github,
-  ExternalLink
+  ExternalLink,
+  CheckSquare
 } from 'lucide-react';
+import ProjectAuditModal from './ProjectAuditModal';
 
 interface DashboardProps {
   projects: Project[];
@@ -25,6 +27,7 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
   // Modal states
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isAddingProject, setIsAddingProject] = useState(false);
+  const [auditingProject, setAuditingProject] = useState<Project | null>(null);
 
   // Form states for creating a new project
   const [newName, setNewName] = useState('');
@@ -272,8 +275,15 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                     </a>
                   )}
                   <button
+                    onClick={() => setAuditingProject(project)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-teal-400 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 transition-colors"
+                  >
+                    <CheckSquare className="w-3.5 h-3.5" />
+                    Auditar
+                  </button>
+                  <button 
                     onClick={() => openEditModal(project)}
-                    className="flex items-center gap-1.5 text-xs text-cyan-400/85 hover:text-cyan-300 font-semibold bg-cyan-950/20 hover:bg-cyan-950/45 px-3 py-1.5 rounded-lg border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-300 ml-auto sm:ml-0"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 transition-colors"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                     Editar
@@ -285,7 +295,14 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
         })}
       </div>
 
-      {/* EDIT MODAL */}
+      {auditingProject && (
+        <ProjectAuditModal
+          project={auditingProject}
+          onClose={() => setAuditingProject(null)}
+        />
+      )}
+
+      {/* Edit Project Modal */}
       {editingProject && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="glass-panel w-full max-w-lg rounded-2xl border border-slate-800 p-6 shadow-2xl relative">
