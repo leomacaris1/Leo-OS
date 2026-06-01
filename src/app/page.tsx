@@ -13,6 +13,7 @@ import Sidebar from '../components/Sidebar';
 import Dashboard from '../components/Dashboard';
 import CommandCenter from '../components/CommandCenter';
 import AgentLog from '../components/AgentLog';
+import AgentLogsLive from '../components/AgentLogsLive';
 import { Database, Cloud, Cpu, Layers } from 'lucide-react';
 
 export default function Page() {
@@ -196,6 +197,8 @@ export default function Page() {
         );
       case 'logs':
         return <AgentLog />;
+      case 'agent-logs':
+        return <AgentLogsLive />;
       default:
         return (
           <div className="text-center text-slate-500 font-mono py-12">

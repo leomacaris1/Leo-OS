@@ -8,7 +8,8 @@ import {
   Layers, 
   Mail, 
   CreditCard,
-  Shield
+  Shield,
+  Activity
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -26,7 +27,8 @@ export default function Sidebar({ activeSection, setActiveSection, stats }: Side
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'Gestión de Proyectos' },
     { id: 'management', label: 'Command Center', icon: Settings, desc: 'Identidades y Finanzas' },
-    { id: 'logs', label: 'OmniAgent Log', icon: Terminal, desc: 'Actividad del Agente' },
+    { id: 'logs', label: 'Terminal Simulator', icon: Terminal, desc: 'Simulador de Comandos' },
+    { id: 'agent-logs', label: '🤖 Agent Logs', icon: Activity, desc: 'Telemetría Supabase Real' },
   ];
 
   return (

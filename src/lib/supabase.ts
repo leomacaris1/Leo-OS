@@ -35,6 +35,15 @@ export interface Subscription {
   created_at?: string;
 }
 
+export interface AgentLogEntry {
+  id: string;
+  level: string;
+  component: string;
+  message: string;
+  created_at: string;
+}
+
+
 // Retrieve environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -73,6 +82,13 @@ const INITIAL_SUBSCRIPTIONS: Subscription[] = [
   { id: 'sub4', name: 'GitHub Copilot', cost: 10.00, billing_cycle: 'Monthly', status: 'Active' },
   { id: 'sub5', name: 'Vercel Pro', cost: 20.00, billing_cycle: 'Monthly', status: 'Active' },
 ];
+
+const INITIAL_AGENT_LOGS: AgentLogEntry[] = [
+  { id: 'al1', created_at: new Date(Date.now() - 3600000).toISOString(), level: 'INFO', component: 'Brain', message: 'Sistema de telemetría de logs iniciado.' },
+  { id: 'al2', created_at: new Date(Date.now() - 3000000).toISOString(), level: 'SUCCESS', component: 'Brain', message: 'OmniAgent conectado con éxito.' },
+  { id: 'al3', created_at: new Date(Date.now() - 1800000).toISOString(), level: 'INFO', component: 'shell_ops', message: 'Escaneando archivos en el directorio local...' },
+];
+
 
 // Helper to check if a value is in client-side context (browsers)
 const isBrowser = typeof window !== 'undefined';
@@ -397,5 +413,46 @@ export const dbService = {
     const filtered = local.filter(s => s.id !== id);
     setLocalData('leo-os-subs', filtered);
     return true;
+  },
+
+  // --- AGENT LOGS SERVICES ---
+  async getAgentLogs(): Promise<AgentLogEntry[]> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('agent_logs')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (!error && data) {
+          setLocalData('leo-os-agent-logs', data);
+          return data as AgentLogEntry[];
+        }
+        console.warn('Supabase logs fetch error, falling back:', error);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    return getLocalData<AgentLogEntry>('leo-os-agent-logs', INITIAL_AGENT_LOGS);
+  },
+
+  async clearAgentLogs(): Promise<boolean> {
+    if (supabase) {
+      try {
+        const { error } = await supabase
+          .from('agent_logs')
+          .delete()
+          .neq('id', '00000000-0000-0000-0000-000000000000'); // delete all
+        if (!error) {
+          setLocalData('leo-os-agent-logs', []);
+          return true;
+        }
+        console.error('Failed to clear Supabase agent logs:', error);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    setLocalData('leo-os-agent-logs', []);
+    return true;
   }
 };
+
