@@ -24,7 +24,7 @@ CREATE POLICY "Public Write Access for Projects" ON projects FOR ALL USING (true
 
 -- Seed Projects
 INSERT INTO projects (name, status, progress, tech_stack) VALUES
-('mmnexus-hub', 'Completed', 100, ARRAY['Next.js', 'React', 'Tailwind CSS', 'Vercel']),
+('Leo Portfolio', 'Completed', 100, ARRAY['Next.js', 'React', 'Tailwind CSS', 'Vercel']),
 ('OmniAgent', 'In Progress', 90, ARRAY['Python', 'LangChain', 'FastAPI', 'OpenAI']),
 ('CoreOps', 'Completed', 100, ARRAY['Go', 'Docker', 'Kubernetes', 'gRPC']),
 ('MoneyFlow', 'In Progress', 85, ARRAY['TypeScript', 'React', 'Supabase', 'Stripe']);

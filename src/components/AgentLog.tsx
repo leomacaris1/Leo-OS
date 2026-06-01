@@ -23,7 +23,7 @@ const PRESET_LOGS: LogEntry[] = [
 
 const SIMULATED_MESSAGES = [
   { type: 'INFO' as const, message: 'Scanning local workspace directory for new components...' },
-  { type: 'SUCCESS' as const, message: 'Project "mmnexus-hub" integrity verification completed (100%).' },
+  { type: 'SUCCESS' as const, message: 'Project "Leo Portfolio" integrity verification completed (100%).' },
   { type: 'SYSTEM' as const, message: 'Syncing cloud identities... 3 email accounts resolved.' },
   { type: 'INFO' as const, message: 'Recalculating digital footprint index...' },
   { type: 'SUCCESS' as const, message: 'Profiles for GitHub, LinkedIn and Twitter verified.' },
