@@ -8,6 +8,8 @@ export interface Project {
   progress: number;
   tech_stack: string[];
   description?: string;
+  repo_url?: string;
+  live_url?: string;
   created_at?: string;
 }
 
@@ -32,6 +34,7 @@ export interface Subscription {
   cost: number;
   billing_cycle: 'Monthly' | 'Annually';
   status: 'Active' | 'Paused' | 'Expired';
+  renewal_date?: string;
   created_at?: string;
 }
 
@@ -55,10 +58,10 @@ export const supabase = supabaseUrl && supabaseAnonKey
 
 // Initial Mock Data (used as seed for LocalStorage fallback)
 const INITIAL_PROJECTS: Project[] = [
-  { id: 'p1', name: 'mmnexus-hub', status: '🟢 Full Green', progress: 95, tech_stack: ['Next.js', 'React', 'Tailwind CSS', 'Vercel', 'Supabase'], description: 'Hub central del ecosistema M&M Nexus.' },
-  { id: 'p2', name: 'OmniAgent v7.0', status: '🟡 Conectando LLM', progress: 85, tech_stack: ['Python', 'LangChain', 'FastAPI', 'OpenAI', 'GPT-4'], description: 'Agente autónomo de IA con capacidad multi-modelo.' },
+  { id: 'p1', name: 'mmnexus-hub', status: '🟢 Full Green', progress: 95, tech_stack: ['Next.js', 'React', 'Tailwind CSS', 'Vercel', 'Supabase'], description: 'Hub central del ecosistema M&M Nexus.', repo_url: 'https://github.com/leomacaris/mmnexus-hub', live_url: 'https://mmnexus-hub.vercel.app' },
+  { id: 'p2', name: 'OmniAgent v7.0', status: '🟡 Conectando LLM', progress: 85, tech_stack: ['Python', 'LangChain', 'FastAPI', 'OpenAI', 'GPT-4'], description: 'Agente autónomo de IA con capacidad multi-modelo.', repo_url: 'https://github.com/leomacaris/OmniAgent' },
   { id: 'p3', name: 'CoreOps', status: '🟣 En Producción', progress: 90, tech_stack: ['Go', 'Docker', 'Kubernetes', 'gRPC', 'Terraform'], description: 'Infraestructura core de operaciones.' },
-  { id: 'p4', name: 'MoneyFlow Pro', status: '🟢 MVP Funcional', progress: 80, tech_stack: ['TypeScript', 'React', 'Supabase', 'Stripe', 'Recharts'], description: 'Plataforma de gestión financiera personal.' },
+  { id: 'p4', name: 'MoneyFlow Pro', status: '🟢 MVP Funcional', progress: 80, tech_stack: ['TypeScript', 'React', 'Supabase', 'Stripe', 'Recharts'], description: 'Plataforma de gestión financiera personal.', repo_url: 'https://github.com/leomacaris/moneyflow-pro', live_url: 'https://moneyflow.pro' },
   { id: 'p5', name: 'Fabrica de Productos', status: '🟢 Motor Activo', progress: 35, tech_stack: ['React', 'Node.js', 'Supabase', 'Stripe'], description: 'Sistema de productos digitales escalables.' },
   { id: 'p6', name: 'Digital Business', status: '🔵 Estrategia', progress: 40, tech_stack: ['Next.js', 'Tailwind CSS', 'Supabase', 'Analytics'], description: 'Ecosistema de negocios digitales.' },
 ];
@@ -76,11 +79,11 @@ const INITIAL_SOCIALS: SocialProfile[] = [
 ];
 
 const INITIAL_SUBSCRIPTIONS: Subscription[] = [
-  { id: 'sub1', name: 'ChatGPT Plus', cost: 20.00, billing_cycle: 'Monthly', status: 'Active' },
-  { id: 'sub2', name: 'Netflix Premium', cost: 15.49, billing_cycle: 'Monthly', status: 'Active' },
-  { id: 'sub3', name: 'Spotify Family', cost: 10.99, billing_cycle: 'Monthly', status: 'Active' },
-  { id: 'sub4', name: 'GitHub Copilot', cost: 10.00, billing_cycle: 'Monthly', status: 'Active' },
-  { id: 'sub5', name: 'Vercel Pro', cost: 20.00, billing_cycle: 'Monthly', status: 'Active' },
+  { id: 'sub1', name: 'ChatGPT Plus', cost: 20.00, billing_cycle: 'Monthly', status: 'Active', renewal_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
+  { id: 'sub2', name: 'Netflix Premium', cost: 15.49, billing_cycle: 'Monthly', status: 'Active', renewal_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
+  { id: 'sub3', name: 'Spotify Family', cost: 10.99, billing_cycle: 'Monthly', status: 'Active', renewal_date: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
+  { id: 'sub4', name: 'GitHub Copilot', cost: 10.00, billing_cycle: 'Monthly', status: 'Active', renewal_date: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
+  { id: 'sub5', name: 'Vercel Pro', cost: 20.00, billing_cycle: 'Monthly', status: 'Active', renewal_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] },
 ];
 
 const INITIAL_AGENT_LOGS: AgentLogEntry[] = [
@@ -253,6 +256,37 @@ export const dbService = {
     return localEmail;
   },
 
+  async updateEmail(id: string, updates: Partial<EmailAccount>): Promise<EmailAccount> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('emails')
+          .update(updates)
+          .eq('id', id)
+          .select();
+        if (!error && data && data.length > 0) {
+          const local = getLocalData<EmailAccount>('leo-os-emails', INITIAL_EMAILS);
+          const idx = local.findIndex(e => e.id === id);
+          if (idx !== -1) {
+            local[idx] = { ...local[idx], ...updates };
+            setLocalData('leo-os-emails', local);
+          }
+          return data[0] as EmailAccount;
+        }
+      } catch (err) {
+        console.error('Supabase connection failed during email update:', err);
+      }
+    }
+    const local = getLocalData<EmailAccount>('leo-os-emails', INITIAL_EMAILS);
+    const idx = local.findIndex(e => e.id === id);
+    if (idx !== -1) {
+      local[idx] = { ...local[idx], ...updates };
+      setLocalData('leo-os-emails', local);
+      return local[idx];
+    }
+    throw new Error('Email not found');
+  },
+
   async deleteEmail(id: string): Promise<boolean> {
     if (supabase) {
       try {
@@ -318,6 +352,37 @@ export const dbService = {
     local.push(localSocial);
     setLocalData('leo-os-socials', local);
     return localSocial;
+  },
+
+  async updateSocial(id: string, updates: Partial<SocialProfile>): Promise<SocialProfile> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('social_profiles')
+          .update(updates)
+          .eq('id', id)
+          .select();
+        if (!error && data && data.length > 0) {
+          const local = getLocalData<SocialProfile>('leo-os-socials', INITIAL_SOCIALS);
+          const idx = local.findIndex(s => s.id === id);
+          if (idx !== -1) {
+            local[idx] = { ...local[idx], ...updates };
+            setLocalData('leo-os-socials', local);
+          }
+          return data[0] as SocialProfile;
+        }
+      } catch (err) {
+        console.error('Supabase connection failed during social update:', err);
+      }
+    }
+    const local = getLocalData<SocialProfile>('leo-os-socials', INITIAL_SOCIALS);
+    const idx = local.findIndex(s => s.id === id);
+    if (idx !== -1) {
+      local[idx] = { ...local[idx], ...updates };
+      setLocalData('leo-os-socials', local);
+      return local[idx];
+    }
+    throw new Error('Social not found');
   },
 
   async deleteSocial(id: string): Promise<boolean> {
@@ -390,6 +455,38 @@ export const dbService = {
     local.push(localSub);
     setLocalData('leo-os-subs', local);
     return localSub;
+  },
+
+  async updateSubscription(id: string, updates: Partial<Subscription>): Promise<Subscription> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .update(updates)
+          .eq('id', id)
+          .select();
+        if (!error && data && data.length > 0) {
+          const updated = { ...data[0], cost: Number(data[0].cost) } as Subscription;
+          const local = getLocalData<Subscription>('leo-os-subs', INITIAL_SUBSCRIPTIONS);
+          const idx = local.findIndex(s => s.id === id);
+          if (idx !== -1) {
+            local[idx] = updated;
+            setLocalData('leo-os-subs', local);
+          }
+          return updated;
+        }
+      } catch (err) {
+        console.error('Supabase connection failed during subscription update:', err);
+      }
+    }
+    const local = getLocalData<Subscription>('leo-os-subs', INITIAL_SUBSCRIPTIONS);
+    const idx = local.findIndex(s => s.id === id);
+    if (idx !== -1) {
+      local[idx] = { ...local[idx], ...updates };
+      setLocalData('leo-os-subs', local);
+      return local[idx];
+    }
+    throw new Error('Subscription not found');
   },
 
   async deleteSubscription(id: string): Promise<boolean> {

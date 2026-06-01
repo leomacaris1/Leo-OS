@@ -61,6 +61,26 @@ export default function Page() {
 
   useEffect(() => {
     loadAllData();
+
+    if (!supabase) return;
+
+    // Realtime subscriptions
+    const channel = supabase.channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public' },
+        (payload) => {
+          // Whenever ANY table changes, we reload all data to ensure we have the latest.
+          // This is a simple and robust way to keep everything in sync in real-time.
+          console.log('Realtime change received!', payload);
+          loadAllData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase?.removeChannel(channel);
+    };
   }, []);
 
   // --- CRUD Event Handlers ---
@@ -102,6 +122,15 @@ export default function Page() {
     }
   };
 
+  const handleUpdateEmail = async (id: string, updates: Partial<EmailAccount>) => {
+    try {
+      const updated = await dbService.updateEmail(id, updates);
+      setEmails(prev => prev.map(e => e.id === id ? updated : e));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleCreateSocial = async (social: Omit<SocialProfile, 'id'>) => {
     try {
       const created = await dbService.createSocial(social);
@@ -122,6 +151,15 @@ export default function Page() {
     }
   };
 
+  const handleUpdateSocial = async (id: string, updates: Partial<SocialProfile>) => {
+    try {
+      const updated = await dbService.updateSocial(id, updates);
+      setSocials(prev => prev.map(s => s.id === id ? updated : s));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleCreateSubscription = async (sub: Omit<Subscription, 'id'>) => {
     try {
       const created = await dbService.createSubscription(sub);
@@ -137,6 +175,15 @@ export default function Page() {
       if (ok) {
         setSubscriptions(prev => prev.filter(s => s.id !== id));
       }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleUpdateSubscription = async (id: string, updates: Partial<Subscription>) => {
+    try {
+      const updated = await dbService.updateSubscription(id, updates);
+      setSubscriptions(prev => prev.map(s => s.id === id ? updated : s));
     } catch (e) {
       console.error(e);
     }
@@ -189,10 +236,13 @@ export default function Page() {
             subscriptions={subscriptions}
             onCreateEmail={handleCreateEmail}
             onDeleteEmail={handleDeleteEmail}
+            onUpdateEmail={handleUpdateEmail}
             onCreateSocial={handleCreateSocial}
             onDeleteSocial={handleDeleteSocial}
+            onUpdateSocial={handleUpdateSocial}
             onCreateSubscription={handleCreateSubscription}
             onDeleteSubscription={handleDeleteSubscription}
+            onUpdateSubscription={handleUpdateSubscription}
           />
         );
       case 'logs':

@@ -15,6 +15,8 @@ CREATE TABLE projects (
     progress INTEGER NOT NULL CHECK (progress >= 0 AND progress <= 100),
     tech_stack TEXT[] NOT NULL DEFAULT '{}',
     description TEXT DEFAULT NULL,
+    repo_url TEXT DEFAULT NULL,
+    live_url TEXT DEFAULT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -24,13 +26,13 @@ CREATE POLICY "Public Read Access for Projects" ON projects FOR SELECT USING (tr
 CREATE POLICY "Public Write Access for Projects" ON projects FOR ALL USING (true);
 
 -- Seed Projects
-INSERT INTO projects (name, status, progress, tech_stack, description) VALUES
-('mmnexus-hub', '🟢 Full Green', 95, ARRAY['Next.js', 'React', 'Tailwind CSS', 'Vercel', 'Supabase'], 'Hub central del ecosistema M&M Nexus.'),
-('OmniAgent v7.0', '🟡 Conectando LLM', 85, ARRAY['Python', 'LangChain', 'FastAPI', 'OpenAI', 'GPT-4'], 'Agente autónomo de IA con capacidad multi-modelo.'),
-('CoreOps', '🟣 En Producción', 90, ARRAY['Go', 'Docker', 'Kubernetes', 'gRPC', 'Terraform'], 'Infraestructura core de operaciones.'),
-('MoneyFlow Pro', '🟢 MVP Funcional', 80, ARRAY['TypeScript', 'React', 'Supabase', 'Stripe', 'Recharts'], 'Plataforma de gestión financiera personal.'),
-('Fabrica de Productos', '🟢 Motor Activo', 35, ARRAY['React', 'Node.js', 'Supabase', 'Stripe'], 'Sistema de productos digitales escalables.'),
-('Digital Business', '🔵 Estrategia', 40, ARRAY['Next.js', 'Tailwind CSS', 'Supabase', 'Analytics'], 'Ecosistema de negocios digitales.');
+INSERT INTO projects (name, status, progress, tech_stack, description, repo_url, live_url) VALUES
+('mmnexus-hub', '🟢 Full Green', 95, ARRAY['Next.js', 'React', 'Tailwind CSS', 'Vercel', 'Supabase'], 'Hub central del ecosistema M&M Nexus.', 'https://github.com/leomacaris/mmnexus-hub', 'https://mmnexus-hub.vercel.app'),
+('OmniAgent v7.0', '🟡 Conectando LLM', 85, ARRAY['Python', 'LangChain', 'FastAPI', 'OpenAI', 'GPT-4'], 'Agente autónomo de IA con capacidad multi-modelo.', 'https://github.com/leomacaris/OmniAgent', NULL),
+('CoreOps', '🟣 En Producción', 90, ARRAY['Go', 'Docker', 'Kubernetes', 'gRPC', 'Terraform'], 'Infraestructura core de operaciones.', NULL, NULL),
+('MoneyFlow Pro', '🟢 MVP Funcional', 80, ARRAY['TypeScript', 'React', 'Supabase', 'Stripe', 'Recharts'], 'Plataforma de gestión financiera personal.', 'https://github.com/leomacaris/moneyflow-pro', 'https://moneyflow.pro'),
+('Fabrica de Productos', '🟢 Motor Activo', 35, ARRAY['React', 'Node.js', 'Supabase', 'Stripe'], 'Sistema de productos digitales escalables.', NULL, NULL),
+('Digital Business', '🔵 Estrategia', 40, ARRAY['Next.js', 'Tailwind CSS', 'Supabase', 'Analytics'], 'Ecosistema de negocios digitales.', NULL, NULL);
 
 
 -- 2. Emails Table
@@ -81,6 +83,7 @@ CREATE TABLE subscriptions (
     cost NUMERIC(10, 2) NOT NULL CHECK (cost >= 0),
     billing_cycle TEXT NOT NULL CHECK (billing_cycle IN ('Monthly', 'Annually')),
     status TEXT NOT NULL CHECK (status IN ('Active', 'Paused', 'Expired')),
+    renewal_date DATE DEFAULT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -90,9 +93,9 @@ CREATE POLICY "Public Read Access for Subscriptions" ON subscriptions FOR SELECT
 CREATE POLICY "Public Write Access for Subscriptions" ON subscriptions FOR ALL USING (true);
 
 -- Seed Subscriptions
-INSERT INTO subscriptions (name, cost, billing_cycle, status) VALUES
-('ChatGPT Plus', 20.00, 'Monthly', 'Active'),
-('Netflix Premium', 15.49, 'Monthly', 'Active'),
-('Spotify Family', 10.99, 'Monthly', 'Active'),
-('GitHub Copilot', 10.00, 'Monthly', 'Active'),
-('Vercel Pro', 20.00, 'Monthly', 'Active');
+INSERT INTO subscriptions (name, cost, billing_cycle, status, renewal_date) VALUES
+('ChatGPT Plus', 20.00, 'Monthly', 'Active', CURRENT_DATE + INTERVAL '10 days'),
+('Netflix Premium', 15.49, 'Monthly', 'Active', CURRENT_DATE + INTERVAL '5 days'),
+('Spotify Family', 10.99, 'Monthly', 'Active', CURRENT_DATE + INTERVAL '12 days'),
+('GitHub Copilot', 10.00, 'Monthly', 'Active', CURRENT_DATE + INTERVAL '20 days'),
+('Vercel Pro', 20.00, 'Monthly', 'Active', CURRENT_DATE + INTERVAL '3 days');

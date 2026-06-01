@@ -10,7 +10,9 @@ import {
   Layers, 
   Sliders,
   X,
-  Sparkles
+  Sparkles,
+  Github,
+  ExternalLink
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -29,12 +31,16 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
   const [newStatus, setNewStatus] = useState('In Progress');
   const [newProgress, setNewProgress] = useState(0);
   const [newTags, setNewTags] = useState('');
+  const [newRepoUrl, setNewRepoUrl] = useState('');
+  const [newLiveUrl, setNewLiveUrl] = useState('');
 
   // Form states for editing a project
   const [editName, setEditName] = useState('');
   const [editStatus, setEditStatus] = useState('');
   const [editProgress, setEditProgress] = useState(0);
   const [editTags, setEditTags] = useState('');
+  const [editRepoUrl, setEditRepoUrl] = useState('');
+  const [editLiveUrl, setEditLiveUrl] = useState('');
 
   // Handle opening edit modal
   const openEditModal = (project: Project) => {
@@ -43,6 +49,8 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
     setEditStatus(project.status);
     setEditProgress(project.progress);
     setEditTags(project.tech_stack.join(', '));
+    setEditRepoUrl(project.repo_url || '');
+    setEditLiveUrl(project.live_url || '');
   };
 
   // Handle saving project edit
@@ -65,7 +73,9 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
       name: editName,
       status: finalStatus,
       progress: editProgress,
-      tech_stack: parsedTags
+      tech_stack: parsedTags,
+      repo_url: editRepoUrl || undefined,
+      live_url: editLiveUrl || undefined
     });
 
     setEditingProject(null);
@@ -90,7 +100,9 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
       name: newName,
       status: finalStatus,
       progress: newProgress,
-      tech_stack: parsedTags.length > 0 ? parsedTags : ['React']
+      tech_stack: parsedTags.length > 0 ? parsedTags : ['React'],
+      repo_url: newRepoUrl || undefined,
+      live_url: newLiveUrl || undefined
     });
 
     // Reset fields
@@ -98,6 +110,8 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
     setNewStatus('In Progress');
     setNewProgress(0);
     setNewTags('');
+    setNewRepoUrl('');
+    setNewLiveUrl('');
     setIsAddingProject(false);
   };
 
@@ -232,13 +246,39 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                   ))}
                 </div>
 
-                <button
-                  onClick={() => openEditModal(project)}
-                  className="flex items-center gap-1.5 text-xs text-cyan-400/85 hover:text-cyan-300 font-semibold bg-cyan-950/20 hover:bg-cyan-950/45 px-3 py-1.5 rounded-lg border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-300"
-                >
-                  <Edit3 className="w-3.5 h-3.5" />
-                  Editar
-                </button>
+                <div className="flex items-center gap-2 mt-3 sm:mt-0 w-full sm:w-auto flex-wrap justify-end">
+                  {project.repo_url && (
+                    <a
+                      href={project.repo_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white font-medium bg-slate-900 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 transition-all duration-300"
+                      title="Ver Código"
+                    >
+                      <Github className="w-3.5 h-3.5" />
+                      Código
+                    </a>
+                  )}
+                  {project.live_url && (
+                    <a
+                      href={project.live_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 text-xs text-teal-400 hover:text-teal-300 font-medium bg-teal-950/20 hover:bg-teal-950/40 px-3 py-1.5 rounded-lg border border-teal-500/30 transition-all duration-300"
+                      title="Ver Live"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Live
+                    </a>
+                  )}
+                  <button
+                    onClick={() => openEditModal(project)}
+                    className="flex items-center gap-1.5 text-xs text-cyan-400/85 hover:text-cyan-300 font-semibold bg-cyan-950/20 hover:bg-cyan-950/45 px-3 py-1.5 rounded-lg border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-300 ml-auto sm:ml-0"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    Editar
+                  </button>
+                </div>
               </div>
             </div>
           );
@@ -331,6 +371,29 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                   placeholder="Next.js, Tailwind, Supabase"
                   className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 mb-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">URL Repositorio</label>
+                  <input
+                    type="url"
+                    value={editRepoUrl}
+                    onChange={(e) => setEditRepoUrl(e.target.value)}
+                    placeholder="https://github.com/..."
+                    className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">URL Live</label>
+                  <input
+                    type="url"
+                    value={editLiveUrl}
+                    onChange={(e) => setEditLiveUrl(e.target.value)}
+                    placeholder="https://vercel.app/..."
+                    className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-900">
@@ -437,6 +500,29 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                   placeholder="Next.js, Python, OpenAI"
                   className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 mb-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">URL Repositorio</label>
+                  <input
+                    type="url"
+                    value={newRepoUrl}
+                    onChange={(e) => setNewRepoUrl(e.target.value)}
+                    placeholder="https://github.com/..."
+                    className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">URL Live</label>
+                  <input
+                    type="url"
+                    value={newLiveUrl}
+                    onChange={(e) => setNewLiveUrl(e.target.value)}
+                    placeholder="https://vercel.app/..."
+                    className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-900">
