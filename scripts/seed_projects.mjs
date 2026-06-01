@@ -22,42 +22,42 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const INITIAL_PROJECTS = [
   {
     name: 'mm-nexus-hub',
-    status: 'Full Green',
+    status: 'Completed',
     progress: 95,
     tech_stack: ['Next.js', 'React', 'Tailwind CSS', 'Vercel', 'Supabase'],
     description: 'Hub central del ecosistema M&M Nexus.',
   },
   {
     name: 'OmniAgent v7.0',
-    status: 'Conectando LLM',
+    status: 'In Progress',
     progress: 85,
     tech_stack: ['Python', 'LangChain', 'FastAPI', 'OpenAI', 'GPT-4'],
     description: 'Agente autónomo de IA con capacidad multi-modelo.',
   },
   {
     name: 'CoreOps',
-    status: 'En Producción',
+    status: 'Completed',
     progress: 90,
     tech_stack: ['Go', 'Docker', 'Kubernetes', 'gRPC', 'Terraform'],
     description: 'Infraestructura core de operaciones.',
   },
   {
     name: 'MoneyFlow Pro',
-    status: 'MVP Funcional',
+    status: 'In Progress',
     progress: 80,
     tech_stack: ['TypeScript', 'React', 'Supabase', 'Stripe', 'Recharts'],
     description: 'Plataforma de gestión financiera personal.',
   },
   {
     name: 'Fabrica de Productos',
-    status: 'Motor Activo',
+    status: 'In Progress',
     progress: 35,
     tech_stack: ['React', 'Node.js', 'Supabase', 'Stripe'],
     description: 'Sistema de productos digitales escalables.',
   },
   {
     name: 'Digital Business',
-    status: 'Estrategia',
+    status: 'On Hold',
     progress: 40,
     tech_stack: ['Next.js', 'Tailwind CSS', 'Supabase', 'Analytics'],
     description: 'Ecosistema de negocios digitales.',
@@ -68,7 +68,7 @@ async function seed() {
   console.log('Seeding projects...');
   const { data, error } = await supabase
     .from('projects')
-    .insert(INITIAL_PROJECTS)
+    .upsert(INITIAL_PROJECTS, { onConflict: 'name' })
     .select();
 
   if (error) {
