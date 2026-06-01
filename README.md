@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌌 Leo OS — Personal Management Dashboard & Telemetry Center
 
-## Getting Started
+<div align="center">
 
-First, run the development server:
+[![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38bdf8?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Database-3ecf8e?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployment-black?style=for-the-badge&logo=vercel&logoColor=white)](https://leo-os-nu.vercel.app/)
+
+**Un centro de operaciones personal, telemetría y control interactivo con estética cyberpunk y diseño ultra-premium.**
+
+[✨ Demo En Vivo](https://leo-os-nu.vercel.app/) • [📂 Estructura](#-arquitectura-y-estructura-del-proyecto) • [🛠️ Instalación](#-gu%C3%ADa-de-instalaci%C3%B3n-y-uso) • [☁️ Configuración de Supabase](#-sincronizaci%C3%B3n-con-supabase)
+
+</div>
+
+---
+
+## 📖 Descripción General
+
+**Leo OS** es un dashboard administrativo interactivo de alto rendimiento y fidelidad visual, diseñado bajo un esquema híbrido de bases de datos. Ofrece una vista consolidada sobre proyectos activos, logs de ejecución de agentes autónomos, y un centro financiero de suscripciones y conversión de monedas en tiempo real. 
+
+Todo esto está envuelto en una interfaz con estilo *cyberpunk neon-dark*, efectos *glassmorphism*, sutiles micro-animaciones en hover y transiciones fluidas que garantizan una experiencia de usuario sobresaliente.
+
+---
+
+## ⚡ Características Principales
+
+### 🌌 1. Estética Cyberpunk Premium
+* Fondos oscuros profundos con gradientes radiales reactivos.
+* Bordes semitransparentes con efectos de desenfoque de fondo (*backdrop-filter*).
+* Sombras neón y glows vibrantes que responden a las interacciones del cursor.
+* Tipografía premium integrada usando fuentes modernas optimizadas.
+
+### 📊 2. Telemetría de Proyectos (Integración de Auditoría Real)
+* Grid interactivo de proyectos activos con barras de progreso dinámicas.
+* **Badges de estado autodetectados mediante emojis** (`🟢`, `🟡`, `🔵`, `🟣`) para renderizar paletas de color neón adaptativas.
+* Sistema de creación y edición en caliente con campos de texto de libre formato.
+* Inclusión de la columna `description` para dar contexto a los desarrollos y auditorías activas.
+
+### 💻 3. Terminal del Agente (AgentLog)
+* Consola interactiva animada con simulación en tiempo real de escaneo de espacio de trabajo.
+* Ejecutor de comandos integrados en la consola:
+  * `/help` — Despliega los comandos disponibles.
+  * `/scan` — Inicia un diagnóstico simulado de la integridad del repositorio.
+  * `/status` — Imprime el reporte de conexión actual de la base de datos.
+  * `/clear` — Limpia el historial de la pantalla de terminal.
+
+### 💳 4. Centro de Control Financiero (Command Center)
+* **Gestión de Identidad**: Edición instantánea de perfiles y portales sociales.
+* **Control de Costos Mensuales**: Tabla interactiva de suscripciones registradas.
+* **Analytics Visuales**: Gráfico de barras interactivo generado con **Recharts** que desglosa el costo mensual por servicio.
+* **Calculadora de Costos**: Herramienta de conversión en tiempo real con selectores de tipo de cambio y proyecciones de gasto anuales.
+
+---
+
+## 🛠️ Arquitectura y Estructura del Proyecto
+
+La estructura del código sigue los estándares de **Next.js App Router** y componentes altamente cohesivos:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Leo OS/
+├── src/
+│   ├── app/
+│   │   ├── globals.css      # Sistema de diseño, animaciones y tokens neón CSS.
+│   │   ├── layout.tsx       # Estructura del documento y optimización de tipografía.
+│   │   └── page.tsx         # Coordinador principal de la SPA y estados de carga.
+│   ├── components/
+│   │   ├── AgentLog.tsx     # Consola interactiva y lógica del simulador de comandos.
+│   │   ├── CommandCenter.tsx# Módulo financiero, Recharts y calculadoras dinámicas.
+│   │   ├── Dashboard.tsx    # Gestión, creación, edición y badges de proyectos.
+│   │   └── Sidebar.tsx      # Navegación del sistema y widgets de telemetría.
+│   └── lib/
+│       └── supabase.ts      # Cliente Supabase híbrido (Cloud ↔ LocalCache Mirror).
+├── supabase_schema.sql      # Esquema SQL base y semilla (Seed Data) para Supabase.
+├── migration_v2_audit.sql   # Script SQL v2 para habilitar descripción y estados libres.
+└── README.md                # Esta documentación.
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Guía de Instalación y Uso
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Sigue estos sencillos pasos para iniciar y probar **Leo OS** de manera local:
 
-## Learn More
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/leomacaris1/Leo-OS.git
+cd "Leo OS"
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Instalar dependencias
+Asegúrate de tener [Node.js](https://nodejs.org/) instalado. Ejecuta en tu terminal:
+```bash
+npm install
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Ejecutar el servidor de desarrollo
+```bash
+npm run dev
+```
+Abre tu navegador en [http://localhost:3000](http://localhost:3000) para ver tu nuevo sistema operativo personal ejecutándose en vivo.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Compilar para Producción
+Para validar los tipos, consistencia y optimizaciones estáticas:
+```bash
+npm run build
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## ☁️ Sincronización con Supabase
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Leo OS** es inteligente: si detecta las variables de entorno se conectará a tu base de datos en la nube. De lo contrario, activará un **Espejo de Caché Local** (`localStorage`) precargado para que la app sea funcional de inmediato.
+
+Para conectarla a tu nube:
+
+### 1. Ejecutar las Migraciones en Supabase
+1. Ingresa a tu panel en [Supabase](https://supabase.com).
+2. Dirígete a la pestaña **SQL Editor**.
+3. Ejecuta primero los contenidos del esquema base: [supabase_schema.sql](file:///c:/Users/leoma/Desktop/Proyectos%20Activos/Leo%20OS/supabase_schema.sql).
+4. Luego, ejecuta el script de migración v2: [migration_v2_audit.sql](file:///c:/Users/leoma/Desktop/Proyectos%20Activos/Leo%20OS/migration_v2_audit.sql) para actualizar las tablas con la columna de descripciones y el soporte libre de emojis de estado.
+
+### 2. Configurar Variables de Entorno
+Crea un archivo `.env.local` en la raíz de tu proyecto local con el siguiente formato:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-de-acceso-publico
+```
+
+### 3. Reiniciar el Servidor
+Reinicia el servidor de desarrollo (`npm run dev`). La etiqueta en la parte superior derecha de tu app cambiará automáticamente de **LOCAL CACHE MIRROR** a **SUPABASE CLOUD ACTIVE**. ¡Todas tus creaciones, modificaciones e interacciones se guardarán ahora en tiempo real en la nube!
+
+---
+
+<div align="center">
+
+Desarrollado con pasión para consolidar el control sobre proyectos digitales de forma inteligente. 🌌
+
+</div>
