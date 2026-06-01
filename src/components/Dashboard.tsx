@@ -233,6 +233,8 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
           <div className="glass-panel w-full max-w-lg rounded-2xl border border-slate-800 p-6 shadow-2xl relative">
             <button 
               onClick={() => setEditingProject(null)}
+              title="Cerrar modal"
+              aria-label="Cerrar"
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 transition-colors"
             >
               <X className="w-5 h-5" />
@@ -245,11 +247,13 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
 
             <form onSubmit={handleSaveEdit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nombre</label>
+                <label htmlFor="edit-name" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nombre</label>
                 <input 
                   type="text" 
+                  id="edit-name"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Nombre del Proyecto"
                   className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50"
                   required
                 />
@@ -257,10 +261,12 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Estado</label>
+                  <label htmlFor="edit-status" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Estado</label>
                   <select 
+                    id="edit-status"
                     value={editStatus}
                     onChange={(e) => setEditStatus(e.target.value as Project['status'])}
+                    title="Estado del Proyecto"
                     className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50"
                   >
                     <option value="Active">Active</option>
@@ -271,16 +277,18 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  <label htmlFor="edit-progress" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
                     Progreso: <span className="text-cyan-400 font-bold glow-cyan">{editProgress}%</span>
                   </label>
                   <div className="flex items-center gap-3 py-2">
                     <input 
                       type="range" 
+                      id="edit-progress"
                       min="0" 
                       max="100" 
                       value={editProgress}
                       onChange={(e) => setEditProgress(Number(e.target.value))}
+                      title="Progreso de Completado"
                       className="w-full accent-cyan-400 h-1.5 bg-slate-900 rounded-lg cursor-pointer"
                     />
                   </div>
@@ -326,6 +334,8 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
           <div className="glass-panel w-full max-w-lg rounded-2xl border border-slate-800 p-6 shadow-2xl relative">
             <button 
               onClick={() => setIsAddingProject(false)}
+              title="Cerrar modal"
+              aria-label="Cerrar"
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 transition-colors"
             >
               <X className="w-5 h-5" />
@@ -338,9 +348,10 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
 
             <form onSubmit={handleCreateProject} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nombre</label>
+                <label htmlFor="new-name" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nombre</label>
                 <input 
                   type="text" 
+                  id="new-name"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="ej: OmniAgent"
@@ -351,10 +362,12 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Estado</label>
+                  <label htmlFor="new-status" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Estado</label>
                   <select 
+                    id="new-status"
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value as Project['status'])}
+                    title="Estado del Proyecto"
                     className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50"
                   >
                     <option value="Active">Active</option>
@@ -365,16 +378,18 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  <label htmlFor="new-progress" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
                     Progreso: <span className="text-emerald-400 font-bold">{newProgress}%</span>
                   </label>
                   <div className="flex items-center gap-3 py-2">
                     <input 
                       type="range" 
+                      id="new-progress"
                       min="0" 
                       max="100" 
                       value={newProgress}
                       onChange={(e) => setNewProgress(Number(e.target.value))}
+                      title="Progreso de Completado"
                       className="w-full accent-emerald-400 h-1.5 bg-slate-900 rounded-lg cursor-pointer"
                     />
                   </div>

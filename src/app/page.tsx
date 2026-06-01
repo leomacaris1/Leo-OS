@@ -243,7 +243,7 @@ export default function Page() {
         </div>
 
         {/* Dynamic section viewport */}
-        <div className="max-w-6xl mx-auto pb-12 transition-all duration-500 animate-in fade-in slide-in-from-bottom-3 duration-500">
+        <div className="max-w-6xl mx-auto pb-12 transition-all duration-500 animate-in fade-in slide-in-from-bottom-3">
           {renderActiveSection()}
         </div>
       </main>

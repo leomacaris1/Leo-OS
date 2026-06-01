@@ -221,6 +221,7 @@ export default function CommandCenter({
                 <select
                   value={emailLabel}
                   onChange={(e) => setEmailLabel(e.target.value as EmailAccount['label'])}
+                  title="Etiqueta de Correo"
                   className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm"
                 >
                   <option value="Personal">Personal</option>
@@ -301,6 +302,7 @@ export default function CommandCenter({
                 <select
                   value={socialPlatform}
                   onChange={(e) => setSocialPlatform(e.target.value as SocialProfile['platform'])}
+                  title="Plataforma de Red Social"
                   className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm"
                 >
                   <option value="GitHub">GitHub</option>
@@ -471,6 +473,7 @@ export default function CommandCenter({
                     <select
                       value={subCycle}
                       onChange={(e) => setSubCycle(e.target.value as Subscription['billing_cycle'])}
+                      title="Ciclo de Facturación"
                       className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm"
                     >
                       <option value="Monthly">Mensual</option>
@@ -484,6 +487,7 @@ export default function CommandCenter({
                   <select
                     value={subStatus}
                     onChange={(e) => setSubStatus(e.target.value as Subscription['status'])}
+                    title="Estado de Suscripción"
                     className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm"
                   >
                     <option value="Active">Active</option>

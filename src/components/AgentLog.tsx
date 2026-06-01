@@ -200,6 +200,7 @@ export default function AgentLog() {
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as 'ALL' | 'INFO' | 'SUCCESS' | 'WARN' | 'SYSTEM')}
+              title="Filtrar Logs"
               className="bg-slate-900 border border-slate-800 rounded px-2 py-0.5 text-xs text-slate-400 focus:outline-none"
             >
               <option value="ALL">TODOS</option>
