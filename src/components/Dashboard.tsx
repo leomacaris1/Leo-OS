@@ -26,13 +26,13 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
 
   // Form states for creating a new project
   const [newName, setNewName] = useState('');
-  const [newStatus, setNewStatus] = useState<'Active' | 'In Progress' | 'Completed' | 'On Hold'>('In Progress');
+  const [newStatus, setNewStatus] = useState('In Progress');
   const [newProgress, setNewProgress] = useState(0);
   const [newTags, setNewTags] = useState('');
 
   // Form states for editing a project
   const [editName, setEditName] = useState('');
-  const [editStatus, setEditStatus] = useState<'Active' | 'In Progress' | 'Completed' | 'On Hold'>('In Progress');
+  const [editStatus, setEditStatus] = useState('');
   const [editProgress, setEditProgress] = useState(0);
   const [editTags, setEditTags] = useState('');
 
@@ -57,10 +57,8 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
 
     // If progress is 100%, automatically change status to Completed
     let finalStatus = editStatus;
-    if (editProgress === 100) {
-      finalStatus = 'Completed';
-    } else if (editProgress < 100 && editStatus === 'Completed') {
-      finalStatus = 'In Progress';
+    if (editProgress === 100 && !editStatus.includes('🟢')) {
+      finalStatus = '🟢 Completed';
     }
 
     await onUpdateProject(editingProject.id, {
@@ -84,8 +82,8 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
       .filter(tag => tag.length > 0);
 
     let finalStatus = newStatus;
-    if (newProgress === 100) {
-      finalStatus = 'Completed';
+    if (newProgress === 100 && !newStatus.includes('🟢')) {
+      finalStatus = '🟢 Completed';
     }
 
     await onCreateProject({
@@ -103,35 +101,46 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
     setIsAddingProject(false);
   };
 
-  // Helper for status badge colors
-  const getStatusStyle = (status: Project['status']) => {
-    switch (status) {
-      case 'Completed':
-        return {
-          bg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
-          dot: 'bg-emerald-400 shadow-[0_0_8px_#10b981]'
-        };
-      case 'In Progress':
-        return {
-          bg: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
-          dot: 'bg-blue-400 shadow-[0_0_8px_#3b82f6]'
-        };
-      case 'Active':
-        return {
-          bg: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400',
-          dot: 'bg-cyan-400 shadow-[0_0_8px_#06b6d4]'
-        };
-      case 'On Hold':
-        return {
-          bg: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
-          dot: 'bg-amber-400 shadow-[0_0_8px_#f59e0b]'
-        };
-      default:
-        return {
-          bg: 'bg-slate-500/10 border-slate-500/30 text-slate-400',
-          dot: 'bg-slate-400'
-        };
-    }
+  // Helper for status badge colors - supports emoji-prefixed free-form status
+  const getStatusStyle = (status: string) => {
+    // Detect by emoji prefix
+    if (status.startsWith('🟢')) return {
+      bg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
+      dot: 'bg-emerald-400 shadow-[0_0_8px_#10b981]'
+    };
+    if (status.startsWith('🟡')) return {
+      bg: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+      dot: 'bg-amber-400 shadow-[0_0_8px_#f59e0b]'
+    };
+    if (status.startsWith('🔵')) return {
+      bg: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+      dot: 'bg-blue-400 shadow-[0_0_8px_#3b82f6]'
+    };
+    if (status.startsWith('🟣')) return {
+      bg: 'bg-purple-500/10 border-purple-500/30 text-purple-400',
+      dot: 'bg-purple-400 shadow-[0_0_8px_#a855f7]'
+    };
+    // Legacy fixed-value fallbacks
+    if (status === 'Completed') return {
+      bg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
+      dot: 'bg-emerald-400 shadow-[0_0_8px_#10b981]'
+    };
+    if (status === 'In Progress') return {
+      bg: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+      dot: 'bg-blue-400 shadow-[0_0_8px_#3b82f6]'
+    };
+    if (status === 'Active') return {
+      bg: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400',
+      dot: 'bg-cyan-400 shadow-[0_0_8px_#06b6d4]'
+    };
+    if (status === 'On Hold') return {
+      bg: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+      dot: 'bg-amber-400 shadow-[0_0_8px_#f59e0b]'
+    };
+    return {
+      bg: 'bg-slate-500/10 border-slate-500/30 text-slate-400',
+      dot: 'bg-slate-400'
+    };
   };
 
   return (
@@ -183,7 +192,7 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                 </div>
 
                 {/* Progress bar container */}
-                <div className="mb-6 space-y-2">
+                <div className="mb-4 space-y-2">
                   <div className="flex justify-between text-xs font-mono">
                     <span className="text-slate-400">Progreso del Sistema</span>
                     <span className="text-cyan-400 font-bold glow-cyan">{project.progress}%</span>
@@ -191,14 +200,23 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                   <div className="w-full h-2.5 bg-slate-900/80 rounded-full overflow-hidden border border-slate-800/50 p-[1px]">
                     <div 
                       className={`h-full rounded-full progress-bar-fill bg-gradient-to-r ${
-                        project.status === 'Completed' 
+                        project.progress >= 90 
                           ? 'from-emerald-500 to-teal-400' 
-                          : 'from-cyan-500 to-blue-500'
+                          : project.progress >= 60
+                          ? 'from-cyan-500 to-blue-500'
+                          : 'from-amber-500 to-orange-400'
                       }`}
                       style={{ width: `${project.progress}%` }}
                     ></div>
                   </div>
                 </div>
+
+                {/* Description */}
+                {project.description && (
+                  <p className="text-xs text-slate-500 leading-relaxed mb-2 line-clamp-2">
+                    {project.description}
+                  </p>
+                )}
               </div>
 
               {/* Footer and Tags */}
@@ -265,10 +283,17 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                   <select 
                     id="edit-status"
                     value={editStatus}
-                    onChange={(e) => setEditStatus(e.target.value as Project['status'])}
+                    onChange={(e) => setEditStatus(e.target.value)}
                     title="Estado del Proyecto"
                     className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50"
                   >
+                    <option value="🟢 Full Green">🟢 Full Green</option>
+                    <option value="🟢 MVP Funcional">🟢 MVP Funcional</option>
+                    <option value="🟢 Motor Activo">🟢 Motor Activo</option>
+                    <option value="🟡 Conectando LLM">🟡 Conectando LLM</option>
+                    <option value="🟡 En Desarrollo">🟡 En Desarrollo</option>
+                    <option value="🔵 Estrategia">🔵 Estrategia</option>
+                    <option value="🟣 En Producción">🟣 En Producción</option>
                     <option value="Active">Active</option>
                     <option value="In Progress">In Progress</option>
                     <option value="Completed">Completed</option>
@@ -366,13 +391,18 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                   <select 
                     id="new-status"
                     value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value as Project['status'])}
+                    onChange={(e) => setNewStatus(e.target.value)}
                     title="Estado del Proyecto"
                     className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50"
                   >
-                    <option value="Active">Active</option>
+                    <option value="🟢 Full Green">🟢 Full Green</option>
+                    <option value="🟢 MVP Funcional">🟢 MVP Funcional</option>
+                    <option value="🟢 Motor Activo">🟢 Motor Activo</option>
+                    <option value="🟡 Conectando LLM">🟡 Conectando LLM</option>
+                    <option value="🟡 En Desarrollo">🟡 En Desarrollo</option>
+                    <option value="🔵 Estrategia">🔵 Estrategia</option>
+                    <option value="🟣 En Producción">🟣 En Producción</option>
                     <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
                     <option value="On Hold">On Hold</option>
                   </select>
                 </div>

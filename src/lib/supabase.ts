@@ -4,9 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 export interface Project {
   id: string;
   name: string;
-  status: 'Active' | 'In Progress' | 'Completed' | 'On Hold';
+  status: string;
   progress: number;
   tech_stack: string[];
+  description?: string;
   created_at?: string;
 }
 
@@ -45,10 +46,12 @@ export const supabase = supabaseUrl && supabaseAnonKey
 
 // Initial Mock Data (used as seed for LocalStorage fallback)
 const INITIAL_PROJECTS: Project[] = [
-  { id: 'p1', name: 'Leo Portfolio', status: 'Completed', progress: 100, tech_stack: ['Next.js', 'React', 'Tailwind CSS', 'Vercel'] },
-  { id: 'p2', name: 'OmniAgent', status: 'In Progress', progress: 90, tech_stack: ['Python', 'LangChain', 'FastAPI', 'OpenAI'] },
-  { id: 'p3', name: 'CoreOps', status: 'Completed', progress: 100, tech_stack: ['Go', 'Docker', 'Kubernetes', 'gRPC'] },
-  { id: 'p4', name: 'MoneyFlow', status: 'In Progress', progress: 85, tech_stack: ['TypeScript', 'React', 'Supabase', 'Stripe'] },
+  { id: 'p1', name: 'mmnexus-hub', status: '🟢 Full Green', progress: 95, tech_stack: ['Next.js', 'React', 'Tailwind CSS', 'Vercel', 'Supabase'], description: 'Hub central del ecosistema M&M Nexus.' },
+  { id: 'p2', name: 'OmniAgent v7.0', status: '🟡 Conectando LLM', progress: 85, tech_stack: ['Python', 'LangChain', 'FastAPI', 'OpenAI', 'GPT-4'], description: 'Agente autónomo de IA con capacidad multi-modelo.' },
+  { id: 'p3', name: 'CoreOps', status: '🟣 En Producción', progress: 90, tech_stack: ['Go', 'Docker', 'Kubernetes', 'gRPC', 'Terraform'], description: 'Infraestructura core de operaciones.' },
+  { id: 'p4', name: 'MoneyFlow Pro', status: '🟢 MVP Funcional', progress: 80, tech_stack: ['TypeScript', 'React', 'Supabase', 'Stripe', 'Recharts'], description: 'Plataforma de gestión financiera personal.' },
+  { id: 'p5', name: 'Fabrica de Productos', status: '🟢 Motor Activo', progress: 35, tech_stack: ['React', 'Node.js', 'Supabase', 'Stripe'], description: 'Sistema de productos digitales escalables.' },
+  { id: 'p6', name: 'Digital Business', status: '🔵 Estrategia', progress: 40, tech_stack: ['Next.js', 'Tailwind CSS', 'Supabase', 'Analytics'], description: 'Ecosistema de negocios digitales.' },
 ];
 
 const INITIAL_EMAILS: EmailAccount[] = [

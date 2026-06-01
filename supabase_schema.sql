@@ -11,9 +11,10 @@ DROP TABLE IF EXISTS subscriptions;
 CREATE TABLE projects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL UNIQUE,
-    status TEXT NOT NULL CHECK (status IN ('Active', 'In Progress', 'Completed', 'On Hold')),
+    status TEXT NOT NULL,
     progress INTEGER NOT NULL CHECK (progress >= 0 AND progress <= 100),
     tech_stack TEXT[] NOT NULL DEFAULT '{}',
+    description TEXT DEFAULT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -23,11 +24,13 @@ CREATE POLICY "Public Read Access for Projects" ON projects FOR SELECT USING (tr
 CREATE POLICY "Public Write Access for Projects" ON projects FOR ALL USING (true);
 
 -- Seed Projects
-INSERT INTO projects (name, status, progress, tech_stack) VALUES
-('Leo Portfolio', 'Completed', 100, ARRAY['Next.js', 'React', 'Tailwind CSS', 'Vercel']),
-('OmniAgent', 'In Progress', 90, ARRAY['Python', 'LangChain', 'FastAPI', 'OpenAI']),
-('CoreOps', 'Completed', 100, ARRAY['Go', 'Docker', 'Kubernetes', 'gRPC']),
-('MoneyFlow', 'In Progress', 85, ARRAY['TypeScript', 'React', 'Supabase', 'Stripe']);
+INSERT INTO projects (name, status, progress, tech_stack, description) VALUES
+('mmnexus-hub', '🟢 Full Green', 95, ARRAY['Next.js', 'React', 'Tailwind CSS', 'Vercel', 'Supabase'], 'Hub central del ecosistema M&M Nexus.'),
+('OmniAgent v7.0', '🟡 Conectando LLM', 85, ARRAY['Python', 'LangChain', 'FastAPI', 'OpenAI', 'GPT-4'], 'Agente autónomo de IA con capacidad multi-modelo.'),
+('CoreOps', '🟣 En Producción', 90, ARRAY['Go', 'Docker', 'Kubernetes', 'gRPC', 'Terraform'], 'Infraestructura core de operaciones.'),
+('MoneyFlow Pro', '🟢 MVP Funcional', 80, ARRAY['TypeScript', 'React', 'Supabase', 'Stripe', 'Recharts'], 'Plataforma de gestión financiera personal.'),
+('Fabrica de Productos', '🟢 Motor Activo', 35, ARRAY['React', 'Node.js', 'Supabase', 'Stripe'], 'Sistema de productos digitales escalables.'),
+('Digital Business', '🔵 Estrategia', 40, ARRAY['Next.js', 'Tailwind CSS', 'Supabase', 'Analytics'], 'Ecosistema de negocios digitales.');
 
 
 -- 2. Emails Table

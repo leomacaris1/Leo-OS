@@ -22,10 +22,14 @@ const PRESET_LOGS: LogEntry[] = [
 ];
 
 const SIMULATED_MESSAGES = [
-  { type: 'INFO' as const, message: 'Scanning local workspace directory for new components...' },
-  { type: 'SUCCESS' as const, message: 'Project "Leo Portfolio" integrity verification completed (100%).' },
+  { type: 'INFO' as const, message: 'Scanning workspace... 6 projects detected in Leo OS registry.' },
+  { type: 'SUCCESS' as const, message: 'Project "mmnexus-hub" audit complete → 🟢 Full Green (95%).' },
   { type: 'SYSTEM' as const, message: 'Syncing cloud identities... 3 email accounts resolved.' },
-  { type: 'INFO' as const, message: 'Recalculating digital footprint index...' },
+  { type: 'INFO' as const, message: 'OmniAgent v7.0 → 🟡 Conectando LLM pipeline (85%)...' },
+  { type: 'SUCCESS' as const, message: 'CoreOps → 🟣 En Producción. Kubernetes cluster healthy.' },
+  { type: 'WARN' as const, message: 'MoneyFlow Pro MVP at 80%. Stripe integration pending final tests.' },
+  { type: 'INFO' as const, message: 'Fabrica de Productos: Motor Activo. Progress: 35%.' },
+  { type: 'SYSTEM' as const, message: 'Digital Business: Estrategia phase. Analytics pipeline initialized.' },
   { type: 'SUCCESS' as const, message: 'Profiles for GitHub, LinkedIn and Twitter verified.' },
   { type: 'WARN' as const, message: 'No custom NEXT_PUBLIC_SUPABASE_URL detected. Local first fallback active.' },
   { type: 'SYSTEM' as const, message: 'Background cron job executed successfully. Session clean.' },
