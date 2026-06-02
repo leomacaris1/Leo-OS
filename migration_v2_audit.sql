@@ -18,7 +18,6 @@ ALTER TABLE projects DROP CONSTRAINT IF EXISTS projects_status_check;
 -- mmnexus-hub (o Leo Portfolio si ya fue renombrado)
 UPDATE projects 
 SET 
-  name = 'mmnexus-hub',
   progress = 95, 
   status = '🟢 Full Green',
   description = 'Hub central del ecosistema M&M Nexus. Portal web con dashboard administrativo.',
@@ -28,7 +27,6 @@ WHERE name IN ('mmnexus-hub', 'Leo Portfolio');
 -- OmniAgent → OmniAgent v7.0
 UPDATE projects 
 SET 
-  name = 'OmniAgent v7.0',
   progress = 85, 
   status = '🟡 Conectando LLM',
   description = 'Agente autónomo de IA con capacidad multi-modelo y orquestación de tareas.',
@@ -38,7 +36,6 @@ WHERE name IN ('OmniAgent', 'OmniAgent v7.0');
 -- MoneyFlow → MoneyFlow Pro
 UPDATE projects 
 SET 
-  name = 'MoneyFlow Pro',
   progress = 80, 
   status = '🟢 MVP Funcional',
   description = 'Plataforma de gestión financiera personal con tracking de suscripciones e inversiones.',
