@@ -10,6 +10,8 @@
 
 **Un centro de operaciones personal, telemetría y control interactivo con estética cyberpunk y diseño ultra-premium.**
 
+> *Nota: Inserta aquí tu GIF o Screenshot principal de la interfaz (`![Dashboard Preview](./docs/preview.gif)`)*
+
 [✨ Demo En Vivo](https://leo-os-nu.vercel.app/) • [📂 Estructura](#-arquitectura-y-estructura-del-proyecto) • [🛠️ Instalación](#-gu%C3%ADa-de-instalaci%C3%B3n-y-uso) • [☁️ Configuración de Supabase](#-sincronizaci%C3%B3n-con-supabase)
 
 </div>
@@ -74,8 +76,17 @@ Leo OS/
 │       └── supabase.ts      # Cliente Supabase híbrido (Cloud ↔ LocalCache Mirror).
 ├── supabase_schema.sql      # Esquema SQL base y semilla (Seed Data) para Supabase.
 ├── migration_v2_audit.sql   # Script SQL v2 para habilitar descripción y estados libres.
+├── migration_v4_tasks.sql   # Script SQL v4 para habilitar el sistema de auditoría dinámica.
 └── README.md                # Esta documentación.
 ```
+
+### 🗄️ Esquema de Base de Datos
+El sistema utiliza múltiples tablas en Supabase para mantener los dominios separados y extensibles:
+* **`projects`**: Almacena los proyectos activos, estado, stack de tecnologías y URLs (repositorio y live).
+* **`project_tasks`**: Sistema de auditoría vinculado a cada proyecto. Contiene una lista de verificación que calcula automáticamente el progreso del proyecto general.
+* **`emails`**: Gestión de cuentas de correo vinculadas a la identidad digital.
+* **`social_profiles`**: Identidad de marca personal y redes.
+* **`subscriptions`**: Motor financiero que rastrea costos de servicios, periodos de facturación y fechas de renovación.
 
 ---
 
@@ -90,7 +101,7 @@ cd "Leo OS"
 ```
 
 ### 2. Instalar dependencias
-Asegúrate de tener [Node.js](https://nodejs.org/) instalado. Ejecuta en tu terminal:
+Asegúrate de tener **Node.js (v18 o superior recomendada)** instalado. Ejecuta en tu terminal:
 ```bash
 npm install
 ```
@@ -106,6 +117,10 @@ Para validar los tipos, consistencia y optimizaciones estáticas:
 ```bash
 npm run build
 ```
+
+### 5. Scripts Útiles Adicionales
+- `npm run lint`: Ejecuta el linter estático para detectar problemas de código.
+- `node scripts/seed_projects.mjs`: Útil para popular (seed) tu base de datos Supabase rápidamente una vez configurada tu cuenta.
 
 ---
 
