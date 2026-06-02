@@ -215,16 +215,19 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                     <span className="text-cyan-400 font-bold glow-cyan">{project.progress}%</span>
                   </div>
                   <div className="w-full h-2.5 bg-slate-900/80 rounded-full overflow-hidden border border-slate-800/50 p-[1px]">
-                    {/* eslint-disable-next-line */}
+                    <style>{`
+                      .progress-bar-fill-${project.id} {
+                        width: ${project.progress}%;
+                      }
+                    `}</style>
                     <div 
-                      className={`h-full rounded-full progress-bar-fill bg-gradient-to-r ${
+                      className={`h-full rounded-full progress-bar-fill-${project.id} bg-gradient-to-r ${
                         project.progress >= 90 
                           ? 'from-emerald-500 to-teal-400' 
                           : project.progress >= 60
                           ? 'from-cyan-500 to-blue-500'
                           : 'from-amber-500 to-orange-400'
                       }`}
-                      style={{ width: `${project.progress}%` }}
                     ></div>
                   </div>
                 </div>
