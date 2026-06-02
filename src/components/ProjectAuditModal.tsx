@@ -65,6 +65,7 @@ export default function ProjectAuditModal({ project, onClose }: ProjectAuditModa
           <button 
             onClick={onClose}
             className="absolute top-6 right-6 text-slate-500 hover:text-rose-400 transition-colors"
+            title="Cerrar modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -106,6 +107,7 @@ export default function ProjectAuditModal({ project, onClose }: ProjectAuditModa
                   <button 
                     onClick={() => toggleTask(task)}
                     className="flex-shrink-0 focus:outline-none"
+                    title={task.is_completed ? "Marcar como pendiente" : "Marcar como completada"}
                   >
                     {task.is_completed ? (
                       <CheckCircle2 className="w-6 h-6 text-emerald-400" />
@@ -119,6 +121,7 @@ export default function ProjectAuditModal({ project, onClose }: ProjectAuditModa
                   <button
                     onClick={() => deleteTask(task.id)}
                     className="text-slate-600 hover:text-rose-400 p-1.5 opacity-0 group-hover:opacity-100 transition-all focus:outline-none"
+                    title="Eliminar tarea"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

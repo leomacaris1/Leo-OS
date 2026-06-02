@@ -592,6 +592,7 @@ export default function CommandCenter({
             <button 
               onClick={() => { setIsAddingEmail(false); setEditingEmail(null); }}
               className="absolute top-4 right-4 text-slate-500 hover:text-rose-400 transition-colors"
+              title="Cerrar modal"
             >
               <X className="w-5 h-5" />
             </button>
@@ -616,6 +617,7 @@ export default function CommandCenter({
                 <select
                   value={emailLabel}
                   onChange={(e) => setEmailLabel(e.target.value as EmailAccount['label'])}
+                  title="Etiqueta de correo"
                   className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm"
                 >
                   <option value="Personal">Personal</option>
@@ -642,6 +644,7 @@ export default function CommandCenter({
             <button 
               onClick={() => { setIsAddingSocial(false); setEditingSocial(null); }}
               className="absolute top-4 right-4 text-slate-500 hover:text-rose-400 transition-colors"
+              title="Cerrar modal"
             >
               <X className="w-5 h-5" />
             </button>
@@ -655,6 +658,7 @@ export default function CommandCenter({
                 <select
                   value={socialPlatform}
                   onChange={(e) => setSocialPlatform(e.target.value as SocialProfile['platform'])}
+                  title="Plataforma social"
                   className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm"
                 >
                   <option value="GitHub">GitHub</option>
@@ -704,6 +708,7 @@ export default function CommandCenter({
             <button 
               onClick={() => { setIsAddingSubscription(false); setEditingSubscription(null); }}
               className="absolute top-4 right-4 text-slate-500 hover:text-rose-400 transition-colors"
+              title="Cerrar modal"
             >
               <X className="w-5 h-5" />
             </button>
@@ -742,6 +747,7 @@ export default function CommandCenter({
                   <select
                     value={subCycle}
                     onChange={(e) => setSubCycle(e.target.value as Subscription['billing_cycle'])}
+                    title="Ciclo de facturación"
                     className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-orange-500/50 text-sm"
                   >
                     <option value="Monthly">Mensual</option>
@@ -756,6 +762,7 @@ export default function CommandCenter({
                   <select
                     value={subStatus}
                     onChange={(e) => setSubStatus(e.target.value as Subscription['status'])}
+                    title="Estado de suscripción"
                     className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-orange-500/50 text-sm"
                   >
                     <option value="Active">Activo</option>
@@ -769,6 +776,8 @@ export default function CommandCenter({
                     type="date"
                     value={subRenewalDate}
                     onChange={(e) => setSubRenewalDate(e.target.value)}
+                    title="Fecha de renovación"
+                    placeholder="Fecha de renovación"
                     className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-orange-500/50 text-sm"
                   />
                 </div>
