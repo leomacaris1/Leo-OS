@@ -10,7 +10,7 @@
 
 > _Nota: Inserta aquí tu GIF o Screenshot principal de la interfaz (`![Dashboard Preview](./docs/preview.gif)`)_
 
-[✨ Demo En Vivo](https://leo-os-nu.vercel.app/) • [📂 Estructura](#%EF%B8%8F-arquitectura-y-estructura-del-proyecto) • [🛠️ Instalación](#%EF%B8%8F-guía-de-instalación-y-uso) • [☁️ Configuración de Supabase](#%E2%98%81%EF%B8%8F-sincronización-con-supabase)
+[✨ Demo En Vivo](https://leo-os-nu.vercel.app/) • [📂 Estructura](#-arquitectura-y-estructura-del-proyecto) • [🛠️ Instalación](#-guía-de-instalación-y-uso) • [☁️ Configuración de Supabase](#-sincronización-con-supabase)
 
 ---
 
