@@ -62,6 +62,8 @@ La estructura del código sigue los estándares de **Next.js App Router** y comp
 
 ```bash
 Leo OS/
+├── agents/                  # Cerebros de OmniAgent (Planner, Reviewer, Architect).
+├── skills/                  # Habilidades de OmniAgent (UI Patterns, DB Ops).
 ├── src/
 │   ├── app/
 │   │   ├── globals.css      # Sistema de diseño, animaciones y tokens neón CSS.
@@ -121,6 +123,19 @@ npm run build
 ### 5. Scripts Útiles Adicionales
 - `npm run lint`: Ejecuta el linter estático para detectar problemas de código.
 - `node scripts/seed_projects.mjs`: Útil para popular (seed) tu base de datos Supabase rápidamente una vez configurada tu cuenta.
+
+---
+
+## 🤖 Integración con OmniAgent (Arquitectura ECC)
+
+Leo-OS está diseñado para ser co-desarrollado con agentes de inteligencia artificial (como **OmniAgent v7.0**) siguiendo la filosofía **ECC (Everything Claude Code)**. En la raíz del proyecto encontrarás dos carpetas fundamentales:
+
+- `agents/`: Contiene los "cerebros" o System Prompts para que tu agente adopte roles específicos (ej. `planner.md` para planificar, `code-reviewer.md` para auditar, `db-architect.md` para base de datos).
+- `skills/`: Contiene las habilidades y reglas estrictas del ecosistema (ej. `leo-os-ui-patterns.md` obliga al agente a usar Glassmorphism y Tailwind correctamente).
+
+**¿Cómo usarlo?**
+Cuando interactúes con tu IA en este repositorio, simplemente indícale:
+> *"Actúa como el rol definido en `agents/code-reviewer.md` y utiliza la habilidad `skills/leo-os-ui-patterns.md` para revisar el archivo X."*
 
 ---
 
