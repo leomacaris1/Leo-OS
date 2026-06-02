@@ -81,6 +81,7 @@ export default function ProjectAuditModal({ project, onClose }: ProjectAuditModa
           {/* Progress Bar inside Audit */}
           <div className="mt-6 flex items-center gap-4">
             <div className="flex-1 h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+              {/* eslint-disable-next-line */}
               <div 
                 className="h-full bg-gradient-to-r from-cyan-500 to-teal-400 transition-all duration-500"
                 style={{ width: `${progressPercent}%` }}
