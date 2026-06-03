@@ -234,7 +234,7 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
           {['Todos', 'Producción', 'Desarrollo', 'Estrategia'].map(status => (
             <button
               key={status}
-              onClick={() => setFilterStatus(status as any)}
+              onClick={() => setFilterStatus(status as 'Todos' | 'Producción' | 'Desarrollo' | 'Estrategia')}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                 filterStatus === status 
                   ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.2)]' 
