@@ -6,12 +6,13 @@
 -- ─── PASO 1: Agregar columna 'description' (si no existe) ───
 -- El esquema original NO tenía columna description/summary/notes.
 -- La agregamos como TEXT opcional.
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS description TEXT DEFAULT NULL;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS description VARCHAR(500) DEFAULT NULL;
 
 -- ─── PASO 2: Eliminar CHECK constraint de 'status' ───
 -- Esto permite usar textos libres con emojis como '🟢 Full Green'
 -- El nombre de la constraint generado por Postgres es 'projects_status_check'
 ALTER TABLE projects DROP CONSTRAINT IF EXISTS projects_status_check;
+ALTER TABLE projects ADD CONSTRAINT projects_status_check CHECK (length(status) <= 50);
 
 -- ─── PASO 3: Actualizar proyectos existentes con datos de auditoría ───
 
