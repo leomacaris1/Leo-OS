@@ -57,6 +57,7 @@ export default function NotificationDrawer({ isOpen, onClose, notifications, onM
             <h2 className="text-lg font-bold text-slate-100">Notificaciones</h2>
           </div>
           <button 
+            title="Cerrar notificaciones"
             onClick={onClose}
             className="text-slate-400 hover:text-slate-100 transition-colors p-1 rounded-md hover:bg-slate-800"
           >
