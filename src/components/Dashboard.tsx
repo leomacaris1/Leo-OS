@@ -293,11 +293,15 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                         'text-amber-400'
                       }`}>{project.progress}%</span>
                     <div className="w-full h-1.5 bg-slate-900/80 rounded-full overflow-hidden border border-slate-800/50">
+                      <style>{`
+                        .progress-bar-fill-compact-${project.id} {
+                          width: ${project.progress}%;
+                        }
+                      `}</style>
                       <div 
-                        className={`h-full rounded-full bg-gradient-to-r ${
+                        className={`h-full rounded-full progress-bar-fill-compact-${project.id} bg-gradient-to-r ${
                           project.progress >= 90 ? 'from-emerald-500 to-teal-400' : project.progress >= 60 ? 'from-cyan-500 to-blue-500' : 'from-amber-500 to-orange-400'
                         }`}
-                        style={{ width: `${project.progress}%` }}
                       ></div>
                     </div>
                   </div>
