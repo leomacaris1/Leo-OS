@@ -72,10 +72,13 @@ export default function Page() {
           setActiveSection('dashboard');
           break;
         case '2':
-          setActiveSection('command');
+          setActiveSection('management'); // Command Center
           break;
         case '3':
-          setActiveSection('logs');
+          setActiveSection('logs'); // Terminal Simulator
+          break;
+        case '4':
+          setActiveSection('agent-logs'); // Agent Logs Live
           break;
       }
     };
