@@ -59,6 +59,30 @@ export default function Page() {
     }
   };
 
+  // Global Navigation Hotkeys
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+        return;
+      }
+      
+      switch (e.key) {
+        case '1':
+          setActiveSection('dashboard');
+          break;
+        case '2':
+          setActiveSection('command');
+          break;
+        case '3':
+          setActiveSection('logs');
+          break;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   useEffect(() => {
     loadAllData();
 

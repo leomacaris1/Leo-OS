@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Project 
 } from '../lib/supabase';
@@ -13,7 +13,9 @@ import {
   Sparkles,
   Github,
   ExternalLink,
-  CheckSquare
+  CheckSquare,
+  LayoutList,
+  Grid
 } from 'lucide-react';
 import ProjectAuditModal from './ProjectAuditModal';
 import { toast } from 'sonner';
@@ -25,6 +27,26 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ projects, onUpdateProject, onCreateProject }: DashboardProps) {
+  // UI states
+  const [viewMode, setViewMode] = useState<'grid' | 'compact'>('grid');
+  const [filterStatus, setFilterStatus] = useState<'Todos' | 'Producción' | 'Desarrollo' | 'Estrategia'>('Todos');
+
+  // Hotkeys
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+        return;
+      }
+      
+      if (e.key.toLowerCase() === 'n') {
+        setIsAddingProject(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Modal states
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isAddingProject, setIsAddingProject] = useState(false);
@@ -206,10 +228,105 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
         </button>
       </div>
 
-      {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-        {projects.map((project) => {
+      {/* Controls Bar: Filters and View Mode */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-8 mb-4 border-b border-slate-900 pb-4 relative z-10">
+        <div className="flex flex-wrap gap-2">
+          {['Todos', 'Producción', 'Desarrollo', 'Estrategia'].map(status => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status as any)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                filterStatus === status 
+                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.2)]' 
+                  : 'bg-slate-900/50 text-slate-400 border border-slate-800 hover:bg-slate-800 hover:text-slate-200'
+              }`}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1 bg-slate-900/50 p-1 rounded-lg border border-slate-800">
+          <button 
+            onClick={() => setViewMode('grid')}
+            title="Vista Detallada"
+            className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-slate-800 text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+          >
+            <Grid className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={() => setViewMode('compact')}
+            title="Vista Compacta"
+            className={`p-1.5 rounded-md transition-all ${viewMode === 'compact' ? 'bg-slate-800 text-cyan-400 shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+          >
+            <LayoutList className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Projects Container */}
+      <div className={`relative z-10 ${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-8' : 'flex flex-col gap-3'}`}>
+        {projects.filter(p => {
+          if (filterStatus === 'Todos') return true;
+          if (filterStatus === 'Producción') return p.progress >= 90;
+          if (filterStatus === 'Desarrollo') return p.progress < 90 && p.progress > 0;
+          if (filterStatus === 'Estrategia') return p.progress === 0;
+          return true;
+        }).map((project) => {
           const statusStyle = getStatusStyle(project.status);
+          
+          if (viewMode === 'compact') {
+            return (
+              <div key={project.id} className="glass-card rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between border group hover:bg-slate-900/80 transition-all duration-300 gap-4 sm:gap-0">
+                <div className="flex items-center gap-4 w-full sm:w-1/3">
+                  <div className="flex-1">
+                    <h3 className="text-base font-bold text-slate-200 group-hover:text-cyan-300 transition-colors">
+                      {project.name}
+                    </h3>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between sm:justify-center gap-6 w-full sm:w-1/3">
+                  <div className="flex items-center gap-3 w-48">
+                    <span className={`font-bold text-sm ${
+                        project.progress >= 90 ? 'text-emerald-400' : 
+                        project.progress >= 60 ? 'text-cyan-400' : 
+                        'text-amber-400'
+                      }`}>{project.progress}%</span>
+                    <div className="w-full h-1.5 bg-slate-900/80 rounded-full overflow-hidden border border-slate-800/50">
+                      <div 
+                        className={`h-full rounded-full bg-gradient-to-r ${
+                          project.progress >= 90 ? 'from-emerald-500 to-teal-400' : project.progress >= 60 ? 'from-cyan-500 to-blue-500' : 'from-amber-500 to-orange-400'
+                        }`}
+                        style={{ width: `${project.progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <span className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border whitespace-nowrap ${statusStyle.bg}`}>
+                    <span className={`w-1 h-1 rounded-full ${statusStyle.dot}`}></span>
+                    {project.status}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 justify-end w-full sm:w-1/3">
+                  <button
+                    onClick={() => setAuditingProject(project)}
+                    className="p-1.5 rounded-md text-teal-400 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 transition-colors"
+                    title="Auditar"
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => openEditModal(project)}
+                    className="p-1.5 rounded-md text-slate-400 hover:text-cyan-400 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 transition-colors"
+                    title="Editar"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
           return (
             <div key={project.id} className="glass-card rounded-2xl p-6 flex flex-col justify-between border relative overflow-hidden group hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all duration-300 bg-slate-950/50 hover:bg-slate-900/80">
               {/* Decorative top-border line glow */}
