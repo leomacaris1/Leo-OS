@@ -7,6 +7,7 @@ import {
   EmailAccount, 
   SocialProfile, 
   Subscription,
+  AppNotification,
   supabase
 } from '../lib/supabase';
 import Sidebar from '../components/Sidebar';
@@ -15,11 +16,14 @@ import CommandCenter from '../components/CommandCenter';
 import AgentLog from '../components/AgentLog';
 import AgentLogsLive from '../components/AgentLogsLive';
 import CommandPalette from '../components/CommandPalette';
-import { Database, Cloud, Cpu, Layers } from 'lucide-react';
+import NotificationDrawer from '../components/NotificationDrawer';
+import { Database, Cloud, Cpu, Layers, Bell } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Page() {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Core collections state
@@ -27,6 +31,7 @@ export default function Page() {
   const [emails, setEmails] = useState<EmailAccount[]>([]);
   const [socials, setSocials] = useState<SocialProfile[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   // Telemetry status
   const [backendMode, setBackendMode] = useState<'Cloud' | 'Local'>('Local');
@@ -43,17 +48,19 @@ export default function Page() {
       }
 
       // Fetch from dbService
-      const [projData, emailData, socialData, subData] = await Promise.all([
+      const [projData, emailData, socialData, subData, notifData] = await Promise.all([
         dbService.getProjects(),
         dbService.getEmails(),
         dbService.getSocials(),
         dbService.getSubscriptions(),
+        dbService.getNotifications(),
       ]);
 
       setProjects(projData);
       setEmails(emailData);
       setSocials(socialData);
       setSubscriptions(subData);
+      setNotifications(notifData);
     } catch (error) {
       console.error('Failed to load telemetry state:', error);
     } finally {
@@ -106,8 +113,16 @@ export default function Page() {
         { event: '*', schema: 'public' },
         (payload) => {
           // Whenever ANY table changes, we reload all data to ensure we have the latest.
-          // This is a simple and robust way to keep everything in sync in real-time.
           console.log('Realtime change received!', payload);
+          
+          if (payload.table === 'notifications' && payload.eventType === 'INSERT') {
+            const newNotif = payload.new as AppNotification;
+            toast(newNotif.title, {
+              description: newNotif.message,
+              icon: newNotif.type === 'error' ? '❌' : newNotif.type === 'success' ? '✅' : '🔔'
+            });
+          }
+          
           loadAllData();
         }
       )
@@ -119,6 +134,15 @@ export default function Page() {
   }, []);
 
   // --- CRUD Event Handlers ---
+  const handleMarkNotifAsRead = async (id: string) => {
+    try {
+      await dbService.markNotificationAsRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleUpdateProject = async (id: string, updates: Partial<Project>) => {
     try {
       const updated = await dbService.updateProject(id, updates);
@@ -306,6 +330,15 @@ export default function Page() {
       <main className="flex-1 h-screen overflow-y-auto px-10 py-8 relative">
         {/* Top telemetry connection status bar */}
         <div className="flex justify-end items-center gap-3 mb-6">
+          <button 
+            onClick={() => setIsNotificationDrawerOpen(true)}
+            className="relative flex items-center justify-center w-8 h-8 rounded-full border border-slate-800 bg-slate-900/50 text-slate-400 hover:text-slate-100 transition-colors"
+          >
+            <Bell className="w-4 h-4" />
+            {notifications.some(n => !n.read) && (
+              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border border-slate-900"></span>
+            )}
+          </button>
           <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-mono font-semibold tracking-wider transition-all duration-300 ${
             backendMode === 'Cloud'
               ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
@@ -345,8 +378,14 @@ export default function Page() {
         }}
         onCreateProject={() => {
           setActiveSection('dashboard');
-          // In a future iteration we can lift isAddingProject to page.tsx to open it directly
         }}
+      />
+
+      <NotificationDrawer 
+        isOpen={isNotificationDrawerOpen}
+        onClose={() => setIsNotificationDrawerOpen(false)}
+        notifications={notifications}
+        onMarkAsRead={handleMarkNotifAsRead}
       />
     </div>
   );

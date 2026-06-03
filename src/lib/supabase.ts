@@ -54,6 +54,15 @@ export interface AgentLogEntry {
   created_at: string;
 }
 
+export interface AppNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  read: boolean;
+  source: string;
+  created_at: string;
+}
 
 // Retrieve environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -100,6 +109,9 @@ const INITIAL_AGENT_LOGS: AgentLogEntry[] = [
   { id: 'al3', created_at: new Date(Date.now() - 1800000).toISOString(), level: 'INFO', component: 'shell_ops', message: 'Escaneando archivos en el directorio local...' },
 ];
 
+const INITIAL_NOTIFICATIONS: AppNotification[] = [
+  { id: 'n1', title: 'Bienvenido a Leo OS', message: 'El sistema ha sido inicializado correctamente.', type: 'info', read: false, source: 'system', created_at: new Date().toISOString() }
+];
 
 // Helper to check if a value is in client-side context (browsers)
 const isBrowser = typeof window !== 'undefined';
@@ -624,6 +636,75 @@ export const dbService = {
     }
     setLocalData('leo-os-agent-logs', []);
     return true;
+  },
+
+  // --- NOTIFICATIONS SERVICES ---
+  async getNotifications(): Promise<AppNotification[]> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (!error && data) {
+          setLocalData('leo-os-notifications', data);
+          return data as AppNotification[];
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    return getLocalData<AppNotification>('leo-os-notifications', INITIAL_NOTIFICATIONS);
+  },
+
+  async markNotificationAsRead(id: string): Promise<void> {
+    if (supabase) {
+      try {
+        await supabase
+          .from('notifications')
+          .update({ read: true })
+          .eq('id', id);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    const local = getLocalData<AppNotification>('leo-os-notifications', INITIAL_NOTIFICATIONS);
+    const idx = local.findIndex(n => n.id === id);
+    if (idx !== -1) {
+      local[idx].read = true;
+      setLocalData('leo-os-notifications', local);
+    }
+  },
+
+  async createNotification(notification: Omit<AppNotification, 'id' | 'created_at' | 'read'>): Promise<AppNotification | null> {
+    const newNotif = {
+      ...notification,
+      read: false
+    };
+
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('notifications')
+          .insert([newNotif])
+          .select();
+        if (!error && data && data.length > 0) {
+          return data[0] as AppNotification;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    const localNotif: AppNotification = { 
+      ...newNotif, 
+      id: `n_${Date.now()}`, 
+      created_at: new Date().toISOString() 
+    };
+    const local = getLocalData<AppNotification>('leo-os-notifications', INITIAL_NOTIFICATIONS);
+    local.unshift(localNotif);
+    setLocalData('leo-os-notifications', local);
+    return localNotif;
   }
 };
 
