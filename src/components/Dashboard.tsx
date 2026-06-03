@@ -161,7 +161,10 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative z-0 p-4 -m-4">
+      {/* Subtle radial background glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-900/10 via-transparent to-transparent -z-10 pointer-events-none rounded-3xl" />
+      
       {/* Header Area */}
       <div className="flex justify-between items-center">
         <div>
@@ -184,11 +187,11 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
       </div>
 
       {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
         {projects.map((project) => {
           const statusStyle = getStatusStyle(project.status);
           return (
-            <div key={project.id} className="glass-card rounded-2xl p-6 flex flex-col justify-between border relative overflow-hidden group">
+            <div key={project.id} className="glass-card rounded-2xl p-6 flex flex-col justify-between border relative overflow-hidden group hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all duration-300 bg-slate-950/50 hover:bg-slate-900/80">
               {/* Decorative top-border line glow */}
               <span className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent group-hover:via-cyan-400/50 transition-all duration-500"></span>
 
@@ -280,14 +283,14 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                   )}
                   <button
                     onClick={() => setAuditingProject(project)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-teal-400 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 hover:shadow-[0_0_15px_rgba(45,212,191,0.4)] transition-all duration-300 transform hover:-translate-y-0.5"
                   >
                     <CheckSquare className="w-3.5 h-3.5" />
                     Auditar
                   </button>
                   <button 
                     onClick={() => openEditModal(project)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 bg-transparent hover:bg-slate-800 border border-slate-700 hover:border-slate-500 hover:text-slate-200 transition-all duration-300"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                     Editar
