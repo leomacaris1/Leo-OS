@@ -16,21 +16,21 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const MISSING_PROJECTS = [
   {
     name: 'Leo OS',
-    status: 'Completed',
+    status: '🚀 Online',
     progress: 100,
     tech_stack: ['Next.js', 'React', 'Tailwind CSS', 'Vercel', 'Supabase'],
     description: 'Sistema Operativo Personal y Dashboard de Telemetría.',
   },
   {
     name: 'Fábrica de Productos',
-    status: 'In Progress',
+    status: '⚙️ Activo',
     progress: 35,
     tech_stack: ['React', 'Vite', 'Node.js', 'Supabase', 'Stripe'],
     description: 'Sistema base y motor de creación de productos digitales escalables.',
   },
   {
     name: 'Digital Business',
-    status: 'On Hold',
+    status: '🔵 Estrategia',
     progress: 40,
     tech_stack: ['Next.js', 'Tailwind CSS', 'Supabase', 'Analytics'],
     description: 'Ecosistema de negocios digitales y embudos de venta.',
