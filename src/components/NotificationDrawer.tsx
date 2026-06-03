@@ -7,10 +7,9 @@ interface NotificationDrawerProps {
   onClose: () => void;
   notifications: AppNotification[];
   onMarkAsRead: (id: string) => void;
-  onClearAll?: () => void;
 }
 
-export default function NotificationDrawer({ isOpen, onClose, notifications, onMarkAsRead, onClearAll }: NotificationDrawerProps) {
+export default function NotificationDrawer({ isOpen, onClose, notifications, onMarkAsRead }: NotificationDrawerProps) {
   
   const getIconForType = (type: string) => {
     switch(type) {
