@@ -14,10 +14,12 @@ import Dashboard from '../components/Dashboard';
 import CommandCenter from '../components/CommandCenter';
 import AgentLog from '../components/AgentLog';
 import AgentLogsLive from '../components/AgentLogsLive';
+import CommandPalette from '../components/CommandPalette';
 import { Database, Cloud, Cpu, Layers } from 'lucide-react';
 
 export default function Page() {
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Core collections state
@@ -80,6 +82,12 @@ export default function Page() {
         case '4':
           setActiveSection('agent-logs'); // Agent Logs Live
           break;
+      }
+      
+      // Global Command Palette shortcut
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(true);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -327,6 +335,19 @@ export default function Page() {
           {renderActiveSection()}
         </div>
       </main>
+
+      <CommandPalette 
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        projects={projects}
+        onNavigate={(section) => {
+          setActiveSection(section);
+        }}
+        onCreateProject={() => {
+          setActiveSection('dashboard');
+          // In a future iteration we can lift isAddingProject to page.tsx to open it directly
+        }}
+      />
     </div>
   );
 }

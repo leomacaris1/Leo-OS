@@ -59,6 +59,7 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
   const [newTags, setNewTags] = useState('');
   const [newRepoUrl, setNewRepoUrl] = useState('');
   const [newLiveUrl, setNewLiveUrl] = useState('');
+  const [newDescription, setNewDescription] = useState('');
 
   // Form states for editing a project
   const [editName, setEditName] = useState('');
@@ -67,6 +68,7 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
   const [editTags, setEditTags] = useState('');
   const [editRepoUrl, setEditRepoUrl] = useState('');
   const [editLiveUrl, setEditLiveUrl] = useState('');
+  const [editDescription, setEditDescription] = useState('');
 
   // Handle opening edit modal
   const openEditModal = (project: Project) => {
@@ -77,6 +79,7 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
     setEditTags(project.tech_stack.join(', '));
     setEditRepoUrl(project.repo_url || '');
     setEditLiveUrl(project.live_url || '');
+    setEditDescription(project.description || '');
   };
 
   // Handle saving project edit
@@ -101,7 +104,8 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
       progress: editProgress,
       tech_stack: parsedTags,
       repo_url: editRepoUrl || undefined,
-      live_url: editLiveUrl || undefined
+      live_url: editLiveUrl || undefined,
+      description: editDescription || undefined
     });
 
     toast.success('Proyecto actualizado en Leo OS Core', {
@@ -132,7 +136,8 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
       progress: newProgress,
       tech_stack: parsedTags.length > 0 ? parsedTags : ['React'],
       repo_url: newRepoUrl || undefined,
-      live_url: newLiveUrl || undefined
+      live_url: newLiveUrl || undefined,
+      description: newDescription || undefined
     });
 
     toast.success('Nuevo núcleo desplegado', {
@@ -146,6 +151,7 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
     setNewTags('');
     setNewRepoUrl('');
     setNewLiveUrl('');
+    setNewDescription('');
     setIsAddingProject(false);
   };
 
@@ -668,6 +674,18 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
                   onChange={(e) => setNewTags(e.target.value)}
                   placeholder="Next.js, Python, OpenAI"
                   className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  Descripción / Misión
+                </label>
+                <textarea 
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  placeholder="El propósito de este proyecto es..."
+                  className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50 min-h-[80px]"
                 />
               </div>
 
