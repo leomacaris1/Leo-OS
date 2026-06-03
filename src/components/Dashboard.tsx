@@ -16,6 +16,7 @@ import {
   CheckSquare
 } from 'lucide-react';
 import ProjectAuditModal from './ProjectAuditModal';
+import { toast } from 'sonner';
 
 interface DashboardProps {
   projects: Project[];
@@ -81,6 +82,10 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
       live_url: editLiveUrl || undefined
     });
 
+    toast.success('Proyecto actualizado en Leo OS Core', {
+      description: `El estado de ${editName} ha sido sincronizado.`,
+    });
+
     setEditingProject(null);
   };
 
@@ -106,6 +111,10 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
       tech_stack: parsedTags.length > 0 ? parsedTags : ['React'],
       repo_url: newRepoUrl || undefined,
       live_url: newLiveUrl || undefined
+    });
+
+    toast.success('Nuevo núcleo desplegado', {
+      description: `${newName} ha sido inicializado en el ecosistema.`,
     });
 
     // Reset fields
@@ -172,9 +181,20 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
             <Layers className="w-8 h-8 text-cyan-400 glow-cyan animate-pulse" />
             Workspace de Proyectos
           </h2>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-400 text-sm mt-1 mb-3">
             Supervisión y control de proyectos activos en Leo OS.
           </p>
+          <div className="flex flex-wrap items-center gap-3 mt-2">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 bg-slate-900/50 px-2.5 py-1 rounded-md border border-slate-800">
+              <span className="text-cyan-400 glow-cyan text-sm">⚡</span> {projects.length} Núcleos Activos
+            </div>
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 bg-slate-900/50 px-2.5 py-1 rounded-md border border-slate-800">
+              <span className="text-emerald-400 glow-emerald text-sm">🟢</span> {projects.filter(p => p.progress >= 90).length} En Producción
+            </div>
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 bg-slate-900/50 px-2.5 py-1 rounded-md border border-slate-800">
+              <span className="text-amber-400 glow-amber text-sm">🛠️</span> {projects.filter(p => p.progress < 90 && p.progress > 0).length} En Desarrollo
+            </div>
+          </div>
         </div>
 
         <button
@@ -213,9 +233,13 @@ export default function Dashboard({ projects, onUpdateProject, onCreateProject }
 
                 {/* Progress bar container */}
                 <div className="mb-4 space-y-2">
-                  <div className="flex justify-between text-xs font-mono">
-                    <span className="text-slate-400">Progreso del Sistema</span>
-                    <span className="text-cyan-400 font-bold glow-cyan">{project.progress}%</span>
+                  <div className="flex justify-between items-end text-xs font-mono">
+                    <span className="text-slate-400 mb-1">Progreso del Sistema</span>
+                    <span className={`font-bold text-xl ${
+                      project.progress >= 90 ? 'text-emerald-400 glow-emerald' : 
+                      project.progress >= 60 ? 'text-cyan-400 glow-cyan' : 
+                      'text-amber-400 glow-amber'
+                    }`}>{project.progress}%</span>
                   </div>
                   <div className="w-full h-2.5 bg-slate-900/80 rounded-full overflow-hidden border border-slate-800/50 p-[1px]">
                     <style>{`

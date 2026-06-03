@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   authors: [{ name: "Leo Macaris" }],
 };
 
+import { Toaster } from 'sonner';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,6 +33,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <Toaster theme="dark" position="bottom-right" toastOptions={{
+          style: { background: 'rgba(15, 22, 42, 0.9)', border: '1px solid rgba(0, 240, 255, 0.3)', color: '#e2e8f0', backdropFilter: 'blur(12px)' }
+        }} />
       </body>
     </html>
   );
