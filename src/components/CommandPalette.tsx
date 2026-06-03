@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Command, Terminal, Plus, Folder, Layout, X, Globe, Cpu } from 'lucide-react';
+import { Search, Command, Terminal, Plus, Folder, Layout, Cpu } from 'lucide-react';
 import { Project } from '../lib/supabase';
 
 interface CommandPaletteProps {
