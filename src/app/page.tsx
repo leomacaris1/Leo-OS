@@ -24,7 +24,7 @@ import { Database, Cloud, Cpu, Layers, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Page() {
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState('home');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -81,7 +81,7 @@ export default function Page() {
       
       switch (e.key) {
         case '1':
-          setActiveSection('dashboard');
+          setActiveSection('home');
           break;
         case '2':
           setActiveSection('projects');
@@ -91,6 +91,9 @@ export default function Page() {
           break;
         case '4':
           setActiveSection('accounts');
+          break;
+        case '5':
+          setActiveSection('terminal');
           break;
       }
       
@@ -282,7 +285,7 @@ export default function Page() {
     }
 
     switch (activeSection) {
-      case 'dashboard':
+      case 'home':
         return <Dashboard />;
       case 'projects':
         return (
