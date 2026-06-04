@@ -26,12 +26,12 @@ interface SidebarProps {
 
 export default function Sidebar({ activeSection, setActiveSection, stats }: SidebarProps) {
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'Vista Global' },
+    { id: 'home', label: 'Home', icon: LayoutDashboard, desc: 'Vista Global' },
     { id: 'projects', label: 'Projects', icon: Layers, desc: 'Gestión de Núcleos' },
     { id: 'agents', label: 'Agents', icon: Bot, desc: 'Flota Autónoma' },
+    { id: 'accounts', label: 'Accounts', icon: CreditCard, desc: 'Identidades y Finanzas' },
     { id: 'terminal', label: 'Terminal', icon: Terminal, desc: 'Simulador de Comandos' },
     { id: 'logs', label: 'Logs', icon: Activity, desc: 'Telemetría Real' },
-    { id: 'accounts', label: 'Accounts', icon: CreditCard, desc: 'Identidades y Finanzas' },
     { id: 'settings', label: 'Settings', icon: Settings, desc: 'Preferencias del Sistema' },
   ];
 
