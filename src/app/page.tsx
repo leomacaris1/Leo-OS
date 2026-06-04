@@ -12,7 +12,10 @@ import {
 } from '../lib/supabase';
 import Sidebar from '../components/Sidebar';
 import Dashboard from '../components/Dashboard';
-import CommandCenter from '../components/CommandCenter';
+import Projects from '../components/Projects';
+import Accounts from '../components/Accounts';
+import Agents from '../components/Agents';
+import Settings from '../components/Settings';
 import AgentLog from '../components/AgentLog';
 import AgentLogsLive from '../components/AgentLogsLive';
 import CommandPalette from '../components/CommandPalette';
@@ -81,13 +84,13 @@ export default function Page() {
           setActiveSection('dashboard');
           break;
         case '2':
-          setActiveSection('management'); // Command Center
+          setActiveSection('projects');
           break;
         case '3':
-          setActiveSection('logs'); // Terminal Simulator
+          setActiveSection('agents');
           break;
         case '4':
-          setActiveSection('agent-logs'); // Agent Logs Live
+          setActiveSection('accounts');
           break;
       }
       
@@ -280,16 +283,20 @@ export default function Page() {
 
     switch (activeSection) {
       case 'dashboard':
+        return <Dashboard />;
+      case 'projects':
         return (
-          <Dashboard 
+          <Projects 
             projects={projects}
             onUpdateProject={handleUpdateProject}
             onCreateProject={handleCreateProject}
           />
         );
-      case 'management':
+      case 'agents':
+        return <Agents />;
+      case 'accounts':
         return (
-          <CommandCenter 
+          <Accounts 
             emails={emails}
             socials={socials}
             subscriptions={subscriptions}
@@ -304,10 +311,12 @@ export default function Page() {
             onUpdateSubscription={handleUpdateSubscription}
           />
         );
-      case 'logs':
+      case 'terminal':
         return <AgentLog />;
-      case 'agent-logs':
+      case 'logs':
         return <AgentLogsLive />;
+      case 'settings':
+        return <Settings />;
       default:
         return (
           <div className="text-center text-slate-500 font-mono py-12">

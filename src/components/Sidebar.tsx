@@ -9,7 +9,8 @@ import {
   Mail, 
   CreditCard,
   Shield,
-  Activity
+  Activity,
+  Bot
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,10 +26,13 @@ interface SidebarProps {
 
 export default function Sidebar({ activeSection, setActiveSection, stats }: SidebarProps) {
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'Gestión de Proyectos' },
-    { id: 'management', label: 'Command Center', icon: Settings, desc: 'Identidades y Finanzas' },
-    { id: 'logs', label: 'Terminal Simulator', icon: Terminal, desc: 'Simulador de Comandos' },
-    { id: 'agent-logs', label: '🤖 Agent Logs', icon: Activity, desc: 'Telemetría Supabase Real' },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'Vista Global' },
+    { id: 'projects', label: 'Projects', icon: Layers, desc: 'Gestión de Núcleos' },
+    { id: 'agents', label: 'Agents', icon: Bot, desc: 'Flota Autónoma' },
+    { id: 'terminal', label: 'Terminal', icon: Terminal, desc: 'Simulador de Comandos' },
+    { id: 'logs', label: 'Logs', icon: Activity, desc: 'Telemetría Real' },
+    { id: 'accounts', label: 'Accounts', icon: CreditCard, desc: 'Identidades y Finanzas' },
+    { id: 'settings', label: 'Settings', icon: Settings, desc: 'Preferencias del Sistema' },
   ];
 
   return (

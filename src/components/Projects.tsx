@@ -20,13 +20,13 @@ import {
 import ProjectAuditModal from './ProjectAuditModal';
 import { toast } from 'sonner';
 
-interface DashboardProps {
+interface ProjectsProps {
   projects: Project[];
   onUpdateProject: (id: string, updates: Partial<Project>) => Promise<void>;
   onCreateProject: (project: Omit<Project, 'id'>) => Promise<void>;
 }
 
-export default function Dashboard({ projects, onUpdateProject, onCreateProject }: DashboardProps) {
+export default function Projects({ projects, onUpdateProject, onCreateProject }: ProjectsProps) {
   // UI states
   const [viewMode, setViewMode] = useState<'grid' | 'compact'>('grid');
   const [filterStatus, setFilterStatus] = useState<'Todos' | 'Producción' | 'Desarrollo' | 'Estrategia'>('Todos');

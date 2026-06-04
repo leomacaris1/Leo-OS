@@ -33,7 +33,7 @@ import {
   Cell
 } from 'recharts';
 
-interface CommandCenterProps {
+interface AccountsProps {
   emails: EmailAccount[];
   socials: SocialProfile[];
   subscriptions: Subscription[];
@@ -48,7 +48,7 @@ interface CommandCenterProps {
   onUpdateSubscription: (id: string, updates: Partial<Subscription>) => Promise<void>;
 }
 
-export default function CommandCenter({
+export default function Accounts({
   emails,
   socials,
   subscriptions,
@@ -61,7 +61,7 @@ export default function CommandCenter({
   onUpdateEmail,
   onUpdateSocial,
   onUpdateSubscription
-}: CommandCenterProps) {
+}: AccountsProps) {
   // Navigation tabs: 'emails' | 'socials' | 'subscriptions'
   const [subTab, setSubTab] = useState<'emails' | 'socials' | 'subscriptions'>('emails');
   const [mounted, setMounted] = useState(false);
@@ -189,14 +189,14 @@ export default function CommandCenter({
       <div>
         <h2 className="text-3xl font-extrabold tracking-tight text-slate-100 flex items-center gap-2">
           <Globe className="w-8 h-8 text-cyan-400 glow-cyan animate-spin-slow" />
-          Command Center
+          Accounts & Identities
         </h2>
         <p className="text-slate-400 text-sm mt-1">
           Administración centralizada de identidades digitales y finanzas personales.
         </p>
       </div>
 
-      {/* CommandCenter SubTabs switcher */}
+      {/* Accounts SubTabs switcher */}
       <div className="flex border-b border-slate-900 gap-1.5 p-1 bg-slate-950/60 rounded-2xl max-w-xl border">
         <button
           onClick={() => setSubTab('emails')}
