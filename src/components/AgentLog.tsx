@@ -93,7 +93,7 @@ export default function AgentLog() {
       responseLog = {
         timestamp,
         type: 'INFO',
-        message: 'Comandos disponibles: /scan (Escaneo de integridad), /status (Estado de servicios), /sync (Forzar sincronización), /clear (Limpiar consola).'
+        message: 'Comandos disponibles: /scan, /status, /sync, /clear, /analyze [target], /fix, /matrix.'
       };
     } else if (cmd === '/scan') {
       responseLog = {
@@ -113,6 +113,39 @@ export default function AgentLog() {
         type: 'SYSTEM',
         message: 'Forzando sincronización completa... [OK] Caché local sincronizado con éxito.'
       };
+    } else if (cmd.startsWith('/analyze')) {
+      const target = cmd.split(' ')[1] || 'sistema global';
+      responseLog = {
+        timestamp,
+        type: 'INFO',
+        message: `Iniciando escaneo heurístico profundo sobre: [${target}]...`
+      };
+      
+      setTimeout(() => {
+        setLogs(prev => [...prev, { timestamp: `${pad(new Date().getHours())}:${pad(new Date().getMinutes())}:${pad(new Date().getSeconds())}`, type: 'SYSTEM', message: `Analizando dependencias y flujos de ${target}... (45%)` }]);
+      }, 1500);
+      setTimeout(() => {
+        setLogs(prev => [...prev, { timestamp: `${pad(new Date().getHours())}:${pad(new Date().getMinutes())}:${pad(new Date().getSeconds())}`, type: 'SUCCESS', message: `[${target}] Análisis completado. 0 vulnerabilidades críticas detectadas.` }]);
+      }, 3500);
+    } else if (cmd === '/fix') {
+      responseLog = {
+        timestamp,
+        type: 'SYSTEM',
+        message: 'Ejecutando rutinas de auto-reparación y optimización de memoria...'
+      };
+      setTimeout(() => {
+        setLogs(prev => [...prev, { timestamp: `${pad(new Date().getHours())}:${pad(new Date().getMinutes())}:${pad(new Date().getSeconds())}`, type: 'SUCCESS', message: 'Auto-reparación concluida. Memoria liberada: 124MB.' }]);
+      }, 2000);
+    } else if (cmd === '/matrix') {
+      responseLog = {
+        timestamp,
+        type: 'SUCCESS',
+        message: 'Iniciando protocolo visual The Matrix...'
+      };
+      const matrixInterval = setInterval(() => {
+        setLogs(prev => [...prev, { timestamp: `${pad(new Date().getHours())}:${pad(new Date().getMinutes())}:${pad(new Date().getSeconds())}`, type: 'SYSTEM', message: Array.from({length: 40}, () => String.fromCharCode(33 + Math.random() * 94)).join('') }]);
+      }, 100);
+      setTimeout(() => clearInterval(matrixInterval), 1500);
     } else if (cmd === '/clear') {
       setLogs([]);
       setInputVal('');
@@ -230,14 +263,14 @@ export default function AgentLog() {
             filteredLogs.map((log, i) => (
               <div 
                 key={i} 
-                className={`leading-relaxed py-0.5 border-l-2 pl-3 transition-all duration-300 ${
+                className={`leading-relaxed py-1.5 px-2 mb-1 border-l-2 pl-3 transition-all duration-500 animate-in fade-in slide-in-from-left-2 rounded-r bg-slate-900/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] ${
                   log.message.startsWith('USR') 
-                    ? 'border-cyan-500/30' 
+                    ? 'border-cyan-500/50 bg-cyan-950/10' 
                     : log.type === 'SUCCESS' 
-                    ? 'border-emerald-500/30' 
+                    ? 'border-emerald-500/50' 
                     : log.type === 'WARN' 
-                    ? 'border-amber-500/30' 
-                    : 'border-purple-500/30'
+                    ? 'border-amber-500/50' 
+                    : 'border-purple-500/50'
                 }`}
               >
                 <span className="text-slate-600 mr-2">[{log.timestamp}]</span>

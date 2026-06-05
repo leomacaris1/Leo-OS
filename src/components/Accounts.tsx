@@ -30,7 +30,9 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  Cell
+  Cell,
+  PieChart,
+  Pie
 } from 'recharts';
 
 interface AccountsProps {
@@ -460,46 +462,92 @@ export default function Accounts({
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Distribution Chart */}
+              {/* Distribution Charts */}
               {mounted && chartData.length > 0 && (
-                <div className="glass-card rounded-2xl p-6 border">
-                  <h3 className="text-sm font-bold text-slate-300 mb-4 uppercase tracking-wider font-mono flex items-center gap-2">
-                    <ChartIcon className="w-4 h-4 text-cyan-400" />
-                    Distribución de Costos Mensuales (USD)
-                  </h3>
-                  <div className="w-full h-44">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                        <XAxis 
-                          dataKey="name" 
-                          stroke="#475569" 
-                          fontSize={10} 
-                          tickLine={false} 
-                          axisLine={false}
-                        />
-                        <YAxis 
-                          stroke="#475569" 
-                          fontSize={10} 
-                          tickLine={false} 
-                          axisLine={false}
-                          tickFormatter={(val) => `$${val}`}
-                        />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: '#0a0e1a', 
-                            borderColor: 'rgba(255,255,255,0.08)',
-                            borderRadius: '12px',
-                            color: '#e2e8f0'
-                          }} 
-                          formatter={(value) => [`$${value}`, 'Costo Mensual']}
-                        />
-                        <Bar dataKey="cost" radius={[4, 4, 0, 0]}>
-                          {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
+                <div className="lg:col-span-1 space-y-6">
+                  <div className="glass-card rounded-2xl p-6 border">
+                    <h3 className="text-sm font-bold text-slate-300 mb-4 uppercase tracking-wider font-mono flex items-center gap-2">
+                      <ChartIcon className="w-4 h-4 text-cyan-400" />
+                      Distribución de Costos (USD)
+                    </h3>
+                    <div className="w-full h-44">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                          <XAxis 
+                            dataKey="name" 
+                            stroke="#475569" 
+                            fontSize={10} 
+                            tickLine={false} 
+                            axisLine={false}
+                          />
+                          <YAxis 
+                            stroke="#475569" 
+                            fontSize={10} 
+                            tickLine={false} 
+                            axisLine={false}
+                            tickFormatter={(val) => `$${val}`}
+                          />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'rgba(10, 14, 26, 0.95)', 
+                              borderColor: 'rgba(6, 182, 212, 0.3)',
+                              borderRadius: '12px',
+                              color: '#e2e8f0',
+                              boxShadow: '0 0 20px rgba(6, 182, 212, 0.15)',
+                              backdropFilter: 'blur(8px)'
+                            }} 
+                            itemStyle={{ color: '#22d3ee', fontWeight: 'bold' }}
+                            formatter={(value) => [`$${value}`, 'Costo Mensual']}
+                            cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                          />
+                          <Bar dataKey="cost" radius={[4, 4, 0, 0]}>
+                            {chartData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={colors[index % colors.length]} className="hover:opacity-80 transition-opacity" />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  <div className="glass-card rounded-2xl p-6 border relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <h3 className="text-sm font-bold text-slate-300 mb-4 uppercase tracking-wider font-mono flex items-center gap-2 relative z-10">
+                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      Desglose Proporcional
+                    </h3>
+                    <div className="w-full h-44 relative z-10">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={chartData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={45}
+                            outerRadius={70}
+                            paddingAngle={5}
+                            dataKey="cost"
+                            stroke="none"
+                          >
+                            {chartData.map((entry, index) => (
+                              <Cell key={`pie-cell-${index}`} fill={colors[index % colors.length]} className="hover:opacity-80 hover:scale-105 transition-all cursor-pointer" />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'rgba(10, 14, 26, 0.95)', 
+                              borderColor: 'rgba(168, 85, 247, 0.3)',
+                              borderRadius: '12px',
+                              color: '#e2e8f0',
+                              boxShadow: '0 0 20px rgba(168, 85, 247, 0.15)',
+                              backdropFilter: 'blur(8px)'
+                            }} 
+                            itemStyle={{ color: '#c084fc', fontWeight: 'bold' }}
+                            formatter={(value) => [`$${value}`, 'Costo']}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
               )}
