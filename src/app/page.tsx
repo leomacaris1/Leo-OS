@@ -139,6 +139,17 @@ export default function Page() {
     };
   }, []);
 
+  // Listen to local DB changes for local fallback mode
+  useEffect(() => {
+    if (backendMode === 'Local' || !supabase) {
+      const handleLocalDbChange = () => {
+        loadAllData();
+      };
+      window.addEventListener('local-db-changed', handleLocalDbChange);
+      return () => window.removeEventListener('local-db-changed', handleLocalDbChange);
+    }
+  }, [backendMode]);
+
   // --- CRUD Event Handlers ---
   const handleMarkNotifAsRead = async (id: string) => {
     try {

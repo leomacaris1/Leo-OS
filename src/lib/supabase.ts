@@ -113,6 +113,11 @@ const INITIAL_NOTIFICATIONS: AppNotification[] = [
   { id: 'n1', title: 'Bienvenido a Leo OS', message: 'El sistema ha sido inicializado correctamente.', type: 'info', read: false, source: 'system', created_at: new Date().toISOString() }
 ];
 
+const INITIAL_PROJECT_TASKS: ProjectTask[] = [
+  { id: 't1', project_id: 'p1', description: 'Configurar variables de entorno', is_completed: true, created_at: new Date().toISOString() },
+  { id: 't2', project_id: 'p1', description: 'Integrar OmniAgent', is_completed: false, created_at: new Date().toISOString() },
+];
+
 // Helper to check if a value is in client-side context (browsers)
 const isBrowser = typeof window !== 'undefined';
 
@@ -134,6 +139,26 @@ const getLocalData = <T>(key: string, initial: T[]): T[] => {
 const setLocalData = <T>(key: string, data: T[]): void => {
   if (isBrowser) {
     localStorage.setItem(key, JSON.stringify(data));
+  }
+};
+
+// Helper to mimic the Supabase trigger for project progress in local storage
+const _recalculateLocalProjectProgress = (projectId: string) => {
+  const tasks = getLocalData<ProjectTask>('leo-os-tasks', INITIAL_PROJECT_TASKS).filter(t => t.project_id === projectId);
+  const total = tasks.length;
+  const completed = tasks.filter(t => t.is_completed).length;
+  const newProgress = total === 0 ? 0 : Math.round((completed * 100) / total);
+
+  const projects = getLocalData<Project>('leo-os-projects', INITIAL_PROJECTS);
+  const pIndex = projects.findIndex(p => p.id === projectId);
+  if (pIndex !== -1) {
+    projects[pIndex].progress = newProgress;
+    setLocalData('leo-os-projects', projects);
+    
+    // Dispatch a custom event so the UI can update if needed
+    if (isBrowser) {
+      window.dispatchEvent(new Event('local-db-changed'));
+    }
   }
 };
 
@@ -242,13 +267,18 @@ export const dbService = {
           .order('created_at', { ascending: true });
         
         if (!error && data) {
+          // Keep local tasks in sync to avoid mismatches
+          const allLocalTasks = getLocalData<ProjectTask>('leo-os-tasks', INITIAL_PROJECT_TASKS);
+          const otherTasks = allLocalTasks.filter(t => t.project_id !== projectId);
+          setLocalData('leo-os-tasks', [...otherTasks, ...data as ProjectTask[]]);
           return data as ProjectTask[];
         }
       } catch (err) {
         console.error(err);
       }
     }
-    return [];
+    const local = getLocalData<ProjectTask>('leo-os-tasks', INITIAL_PROJECT_TASKS);
+    return local.filter(t => t.project_id === projectId);
   },
 
   async createProjectTask(task: Omit<ProjectTask, 'id'>): Promise<ProjectTask | null> {
@@ -266,7 +296,17 @@ export const dbService = {
         console.error(err);
       }
     }
-    return null;
+    
+    const localTask: ProjectTask = {
+      ...task,
+      id: `t_${Date.now()}`,
+      created_at: new Date().toISOString()
+    };
+    const local = getLocalData<ProjectTask>('leo-os-tasks', INITIAL_PROJECT_TASKS);
+    local.push(localTask);
+    setLocalData('leo-os-tasks', local);
+    _recalculateLocalProjectProgress(task.project_id);
+    return localTask;
   },
 
   async updateProjectTask(id: string, updates: Partial<ProjectTask>): Promise<ProjectTask | null> {
@@ -284,6 +324,15 @@ export const dbService = {
         console.error(err);
       }
     }
+    
+    const local = getLocalData<ProjectTask>('leo-os-tasks', INITIAL_PROJECT_TASKS);
+    const idx = local.findIndex(t => t.id === id);
+    if (idx !== -1) {
+      local[idx] = { ...local[idx], ...updates };
+      setLocalData('leo-os-tasks', local);
+      _recalculateLocalProjectProgress(local[idx].project_id);
+      return local[idx];
+    }
     return null;
   },
 
@@ -291,9 +340,18 @@ export const dbService = {
     if (supabase) {
       try {
         await supabase.from('project_tasks').delete().eq('id', id);
+        return;
       } catch (err) {
         console.error(err);
       }
+    }
+    
+    const local = getLocalData<ProjectTask>('leo-os-tasks', INITIAL_PROJECT_TASKS);
+    const taskToDelete = local.find(t => t.id === id);
+    if (taskToDelete) {
+      const filtered = local.filter(t => t.id !== id);
+      setLocalData('leo-os-tasks', filtered);
+      _recalculateLocalProjectProgress(taskToDelete.project_id);
     }
   },
 
