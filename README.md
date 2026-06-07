@@ -170,11 +170,37 @@ Crea un archivo `.env.local` en la raíz de tu proyecto local con el siguiente f
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-de-acceso-publico
+SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key-solo-en-servidor
+NEXUS_WEBHOOK_SECRET=un-secreto-largo-para-omniagent
 ```
 
 ### 3. Reiniciar el Servidor
 
 Reinicia el servidor de desarrollo (`npm run dev`). La etiqueta en la parte superior derecha de tu app cambiará automáticamente de **LOCAL CACHE MIRROR** a **SUPABASE CLOUD ACTIVE**. ¡Todas tus creaciones, modificaciones e interacciones se guardarán ahora en tiempo real en la nube!
+
+### 4. Conectar OmniAgent al Webhook Nexus
+
+Leo OS expone `POST /api/webhooks/nexus` para recibir telemetría real de OmniAgent y guardarla en `agent_logs`. Si incluyes `notify: true` o `event: "notification"`, también creará una notificación en `notifications`.
+
+Configura OmniAgent con:
+
+```env
+OMNIAGENT_SUPABASE_ENABLED=true
+OMNIAGENT_NEXUS_WEBHOOK_URL=http://localhost:3000/api/webhooks/nexus
+OMNIAGENT_NEXUS_WEBHOOK_SECRET=el-mismo-secreto-de-nexus
+```
+
+Ejemplo de payload:
+
+```json
+{
+  "event": "log",
+  "level": "SUCCESS",
+  "component": "Brain",
+  "message": "Ciclo de razonamiento completado.",
+  "source": "omniagent"
+}
+```
 
 ---
 
