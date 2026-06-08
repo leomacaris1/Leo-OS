@@ -75,6 +75,14 @@ export default function Dashboard() {
       <div className="glass-card rounded-2xl p-8 border mt-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-slate-900/50 to-transparent pointer-events-none"></div>
         
+        {/* Dynamic style block to avoid inline styles */}
+        <style>{`
+          #cpu-bar { width: ${metrics.cpu}%; }
+          #ram-bar { width: ${metrics.ram}%; }
+          #net-bar { width: ${metrics.net}%; }
+          #db-bar { width: ${metrics.db}%; }
+        `}</style>
+
         <div className="flex items-center gap-3 mb-8 relative z-10">
           <Server className="w-6 h-6 text-purple-400" />
           <h3 className="text-xl font-bold text-slate-200">System Core Monitor</h3>
@@ -95,8 +103,8 @@ export default function Dashboard() {
             </div>
             <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800">
               <div 
+                id="cpu-bar"
                 className="h-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.8)] transition-all duration-500 ease-out"
-                style={{ width: `${metrics.cpu}%` }}
               ></div>
             </div>
           </div>
@@ -111,8 +119,8 @@ export default function Dashboard() {
             </div>
             <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800">
               <div 
+                id="ram-bar"
                 className="h-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)] transition-all duration-500 ease-out"
-                style={{ width: `${metrics.ram}%` }}
               ></div>
             </div>
           </div>
@@ -127,8 +135,8 @@ export default function Dashboard() {
             </div>
             <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800">
               <div 
+                id="net-bar"
                 className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] transition-all duration-500 ease-out"
-                style={{ width: `${metrics.net}%` }}
               ></div>
             </div>
           </div>
@@ -143,8 +151,8 @@ export default function Dashboard() {
             </div>
             <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800">
               <div 
+                id="db-bar"
                 className="h-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.8)] transition-all duration-500 ease-out"
-                style={{ width: `${metrics.db}%` }}
               ></div>
             </div>
           </div>
