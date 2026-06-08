@@ -23,6 +23,24 @@ import NotificationDrawer from '../components/NotificationDrawer';
 import { Database, Cloud, Cpu, Layers, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 
+const DATA_LOAD_DEADLINE_MS = 7000;
+
+const dataLoadDeadline = () =>
+  new Promise<'timeout'>((resolve) => {
+    setTimeout(() => resolve('timeout'), DATA_LOAD_DEADLINE_MS);
+  });
+
+type TelemetryResults = [
+  PromiseSettledResult<Project[]>,
+  PromiseSettledResult<EmailAccount[]>,
+  PromiseSettledResult<SocialProfile[]>,
+  PromiseSettledResult<Subscription[]>,
+  PromiseSettledResult<AppNotification[]>
+];
+
+const fulfilledOrEmpty = <T,>(entry: PromiseSettledResult<T[]>): T[] =>
+  entry.status === 'fulfilled' ? entry.value : [];
+
 export default function Page() {
   const [activeSection, setActiveSection] = useState('home');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -50,20 +68,30 @@ export default function Page() {
         setBackendMode('Local');
       }
 
-      // Fetch from dbService
-      const [projData, emailData, socialData, subData, notifData] = await Promise.all([
-        dbService.getProjects(),
-        dbService.getEmails(),
-        dbService.getSocials(),
-        dbService.getSubscriptions(),
-        dbService.getNotifications(),
+      const result = await Promise.race<'timeout' | TelemetryResults>([
+        Promise.allSettled([
+          dbService.getProjects(),
+          dbService.getEmails(),
+          dbService.getSocials(),
+          dbService.getSubscriptions(),
+          dbService.getNotifications(),
+        ]) as Promise<TelemetryResults>,
+        dataLoadDeadline(),
       ]);
 
-      setProjects(projData);
-      setEmails(emailData);
-      setSocials(socialData);
-      setSubscriptions(subData);
-      setNotifications(notifData);
+      if (result === 'timeout') {
+        console.warn('Telemetry load deadline reached; rendering with the current local state.');
+        setBackendMode('Local');
+        return;
+      }
+
+      const [projData, emailData, socialData, subData, notifData] = result;
+
+      setProjects(fulfilledOrEmpty(projData));
+      setEmails(fulfilledOrEmpty(emailData));
+      setSocials(fulfilledOrEmpty(socialData));
+      setSubscriptions(fulfilledOrEmpty(subData));
+      setNotifications(fulfilledOrEmpty(notifData));
     } catch (error) {
       console.error('Failed to load telemetry state:', error);
     } finally {

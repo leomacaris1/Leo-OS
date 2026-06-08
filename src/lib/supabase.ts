@@ -120,6 +120,24 @@ const INITIAL_PROJECT_TASKS: ProjectTask[] = [
 
 // Helper to check if a value is in client-side context (browsers)
 const isBrowser = typeof window !== 'undefined';
+const SUPABASE_QUERY_TIMEOUT_MS = 4500;
+
+const withSupabaseTimeout = async <T>(query: PromiseLike<T>, label: string): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${SUPABASE_QUERY_TIMEOUT_MS}ms`));
+    }, SUPABASE_QUERY_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([query, timeout]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+};
 
 // LocalStorage Helper functions
 const getLocalData = <T>(key: string, initial: T[]): T[] => {
@@ -168,10 +186,13 @@ export const dbService = {
   async getProjects(): Promise<Project[]> {
     if (supabase) {
       try {
-        const { data, error } = await supabase
-          .from('projects')
-          .select('*')
-          .order('created_at', { ascending: true });
+        const { data, error } = await withSupabaseTimeout(
+          supabase
+            .from('projects')
+            .select('*')
+            .order('created_at', { ascending: true }),
+          'projects fetch'
+        );
         
         if (!error && data) {
           setLocalData('leo-os-projects', data); // Sync cache
@@ -359,10 +380,13 @@ export const dbService = {
   async getEmails(): Promise<EmailAccount[]> {
     if (supabase) {
       try {
-        const { data, error } = await supabase
-          .from('emails')
-          .select('*')
-          .order('created_at', { ascending: true });
+        const { data, error } = await withSupabaseTimeout(
+          supabase
+            .from('emails')
+            .select('*')
+            .order('created_at', { ascending: true }),
+          'emails fetch'
+        );
         
         if (!error && data) {
           setLocalData('leo-os-emails', data);
@@ -458,10 +482,13 @@ export const dbService = {
   async getSocials(): Promise<SocialProfile[]> {
     if (supabase) {
       try {
-        const { data, error } = await supabase
-          .from('social_profiles')
-          .select('*')
-          .order('created_at', { ascending: true });
+        const { data, error } = await withSupabaseTimeout(
+          supabase
+            .from('social_profiles')
+            .select('*')
+            .order('created_at', { ascending: true }),
+          'social profiles fetch'
+        );
         if (!error && data) {
           setLocalData('leo-os-socials', data);
           return data as SocialProfile[];
@@ -556,10 +583,13 @@ export const dbService = {
   async getSubscriptions(): Promise<Subscription[]> {
     if (supabase) {
       try {
-        const { data, error } = await supabase
-          .from('subscriptions')
-          .select('*')
-          .order('created_at', { ascending: true });
+        const { data, error } = await withSupabaseTimeout(
+          supabase
+            .from('subscriptions')
+            .select('*')
+            .order('created_at', { ascending: true }),
+          'subscriptions fetch'
+        );
         if (!error && data) {
           // Standardize numeric types from DB
           const parsedData = data.map(sub => ({
@@ -700,10 +730,13 @@ export const dbService = {
   async getNotifications(): Promise<AppNotification[]> {
     if (supabase) {
       try {
-        const { data, error } = await supabase
-          .from('notifications')
-          .select('*')
-          .order('created_at', { ascending: false });
+        const { data, error } = await withSupabaseTimeout(
+          supabase
+            .from('notifications')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          'notifications fetch'
+        );
         if (!error && data) {
           setLocalData('leo-os-notifications', data);
           return data as AppNotification[];
