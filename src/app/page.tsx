@@ -416,12 +416,8 @@ export default function Page() {
       <CommandPalette 
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
-        projects={projects}
         onNavigate={(section) => {
           setActiveSection(section);
-        }}
-        onCreateProject={() => {
-          setActiveSection('projects');
         }}
       />
 
