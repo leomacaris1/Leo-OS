@@ -41,10 +41,11 @@ export default function ProjectAuditModal({ project, onClose }: ProjectAuditModa
 
   const toggleTask = async (task: ProjectTask) => {
     // Optimistic UI update
-    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, is_completed: !t.is_completed } : t));
+    setTasks(prev => prev.map(t => t.id === task.id ? { ...t, is_completed: !(t.is_completed || t.status === 'completed'), status: (t.is_completed || t.status === 'completed') ? 'pending' : 'completed' } : t));
     
     await dbService.updateProjectTask(task.id, {
-      is_completed: !task.is_completed
+      is_completed: !(task.is_completed || task.status === 'completed'),
+      status: (task.is_completed || task.status === 'completed') ? 'pending' : 'completed'
     });
   };
 
@@ -53,7 +54,7 @@ export default function ProjectAuditModal({ project, onClose }: ProjectAuditModa
     await dbService.deleteProjectTask(id);
   };
 
-  const completedCount = tasks.filter(t => t.is_completed).length;
+  const completedCount = tasks.filter(t => t.is_completed || t.status === 'completed').length;
   const progressPercent = tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
 
   return (
@@ -109,15 +110,15 @@ export default function ProjectAuditModal({ project, onClose }: ProjectAuditModa
                   <button 
                     onClick={() => toggleTask(task)}
                     className="flex-shrink-0 focus:outline-none"
-                    title={task.is_completed ? "Marcar como pendiente" : "Marcar como completada"}
+                    title={(task.is_completed || task.status === 'completed') ? "Marcar como pendiente" : "Marcar como completada"}
                   >
-                    {task.is_completed ? (
+                    {(task.is_completed || task.status === 'completed') ? (
                       <CheckCircle2 className="w-6 h-6 text-emerald-400" />
                     ) : (
                       <Circle className="w-6 h-6 text-slate-600 hover:text-cyan-400 transition-colors" />
                     )}
                   </button>
-                  <span className={`flex-1 text-sm ${task.is_completed ? 'text-slate-500 line-through' : 'text-slate-300'}`}>
+                  <span className={`flex-1 text-sm ${(task.is_completed || task.status === 'completed') ? 'text-slate-500 line-through' : 'text-slate-300'}`}>
                     {task.description}
                   </span>
                   <button

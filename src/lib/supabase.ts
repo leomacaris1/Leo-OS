@@ -41,10 +41,11 @@ export interface Subscription {
 export interface ProjectTask {
   id: string;
   project_id: string;
-  title: string;
+  title?: string;
   description: string;
-  status: 'pending' | 'in_progress' | 'completed';
-  created_at: string;
+  status?: 'pending' | 'in_progress' | 'completed';
+  is_completed?: boolean;
+  created_at?: string;
 }
 
 export interface Agent {
@@ -176,7 +177,7 @@ const setLocalData = <T>(key: string, data: T[]): void => {
 const _recalculateLocalProjectProgress = (projectId: string) => {
   const tasks = getLocalData<ProjectTask>('leo-os-tasks', INITIAL_PROJECT_TASKS).filter(t => t.project_id === projectId);
   const total = tasks.length;
-  const completed = tasks.filter(t => t.is_completed).length;
+  const completed = tasks.filter(t => t.is_completed || t.status === 'completed').length;
   const newProgress = total === 0 ? 0 : Math.round((completed * 100) / total);
 
   const projects = getLocalData<Project>('leo-os-projects', INITIAL_PROJECTS);
