@@ -16,6 +16,22 @@
   --neon-rose: #ff007b;
 }
 
+[data-theme="matrix"] {
+  --neon-cyan: #00ff41;
+  --neon-purple: #008f11;
+  --neon-emerald: #00ff87;
+  --neon-orange: #bbff00;
+  --neon-rose: #00ff41;
+}
+
+[data-theme="crimson"] {
+  --neon-cyan: #ff3b3b;
+  --neon-purple: #990000;
+  --neon-emerald: #ff8800;
+  --neon-orange: #ffaa00;
+  --neon-rose: #ff0044;
+}
+
 body {
   color: var(--foreground);
   background-color: var(--background);
@@ -66,6 +82,14 @@ body {
   background: rgba(15, 22, 42, 0.65);
   border-color: rgba(0, 240, 255, 0.3);
   box-shadow: 0 10px 25px -5px rgba(0, 240, 255, 0.1), 0 8px 10px -6px rgba(0, 240, 255, 0.05);
+}
+
+/* Performance Mode (disables heavy blur) */
+[data-performance="high"] .glass-panel,
+[data-performance="high"] .glass-card {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: rgba(10, 14, 26, 0.95);
 }
 
 /* Glowing Neon Elements */

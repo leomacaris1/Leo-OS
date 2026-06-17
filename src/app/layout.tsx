@@ -32,6 +32,22 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('leo-os-theme');
+                if (theme) {
+                  document.documentElement.setAttribute('data-theme', theme);
+                }
+                const perf = localStorage.getItem('leo-os-performance');
+                if (perf === 'high') {
+                  document.documentElement.setAttribute('data-performance', 'high');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
         {children}
         <Toaster theme="dark" position="bottom-right" toastOptions={{
           style: { background: 'rgba(15, 22, 42, 0.9)', border: '1px solid rgba(0, 240, 255, 0.3)', color: '#e2e8f0', backdropFilter: 'blur(12px)' }
