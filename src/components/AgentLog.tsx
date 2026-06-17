@@ -91,7 +91,9 @@ export default function AgentLog() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (supabase) {
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 

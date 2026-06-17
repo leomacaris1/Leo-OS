@@ -75,7 +75,7 @@ export default function Settings() {
             {/* Cyberpunk */}
             <button 
               onClick={() => handleThemeChange('cyberpunk')}
-              className={\`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 \${theme === 'cyberpunk' ? 'bg-purple-950/20 border-purple-500/50 glow-purple' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'}\`}
+              className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${theme === 'cyberpunk' ? 'bg-purple-950/20 border-purple-500/50 glow-purple' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'}`}
             >
               <div className="flex items-center gap-3">
                 <div className="flex gap-1">
@@ -93,7 +93,7 @@ export default function Settings() {
             {/* Matrix */}
             <button 
               onClick={() => handleThemeChange('matrix')}
-              className={\`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 \${theme === 'matrix' ? 'bg-emerald-950/20 border-emerald-500/50 glow-emerald' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'}\`}
+              className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${theme === 'matrix' ? 'bg-emerald-950/20 border-emerald-500/50 glow-emerald' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'}`}
             >
               <div className="flex items-center gap-3">
                 <div className="flex gap-1">
@@ -111,7 +111,7 @@ export default function Settings() {
             {/* Crimson */}
             <button 
               onClick={() => handleThemeChange('crimson')}
-              className={\`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 \${theme === 'crimson' ? 'bg-rose-950/20 border-rose-500/50 glow-rose' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'}\`}
+              className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${theme === 'crimson' ? 'bg-rose-950/20 border-rose-500/50 glow-rose' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'}`}
             >
               <div className="flex items-center gap-3">
                 <div className="flex gap-1">
@@ -142,7 +142,7 @@ export default function Settings() {
             <div className="space-y-4">
               <button 
                 onClick={() => handlePerformanceChange('standard')}
-                className={\`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 \${performanceMode === 'standard' ? 'bg-amber-950/20 border-amber-500/50 glow-amber' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'}\`}
+                className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${performanceMode === 'standard' ? 'bg-amber-950/20 border-amber-500/50 glow-amber' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'}`}
               >
                 <div className="text-left">
                   <p className="text-sm font-bold text-slate-200">Alta Fidelidad (Glassmorphism)</p>
@@ -153,7 +153,7 @@ export default function Settings() {
 
               <button 
                 onClick={() => handlePerformanceChange('high')}
-                className={\`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 \${performanceMode === 'high' ? 'bg-slate-800/50 border-slate-500/50' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'}\`}
+                className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 ${performanceMode === 'high' ? 'bg-slate-800/50 border-slate-500/50' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'}`}
               >
                 <div className="text-left">
                   <p className="text-sm font-bold text-slate-200">Máximo Rendimiento</p>
@@ -173,7 +173,7 @@ export default function Settings() {
               <h3 className="text-lg font-bold text-slate-200">Conexión de Datos</h3>
             </div>
             
-            <div className={\`p-4 rounded-xl border \${isCloud ? 'bg-emerald-950/20 border-emerald-500/30' : 'bg-amber-950/20 border-amber-500/30'}\`}>
+            <div className={`p-4 rounded-xl border ${isCloud ? 'bg-emerald-950/20 border-emerald-500/30' : 'bg-amber-950/20 border-amber-500/30'}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-bold text-slate-200">Modo de Operación</p>
@@ -184,11 +184,11 @@ export default function Settings() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={\`relative flex h-3 w-3\`}>
-                    <span className={\`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 \${isCloud ? 'bg-emerald-400' : 'bg-amber-400'}\`}></span>
-                    <span className={\`relative inline-flex rounded-full h-3 w-3 \${isCloud ? 'bg-emerald-500' : 'bg-amber-500'}\`}></span>
+                  <span className={`relative flex h-3 w-3`}>
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isCloud ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+                    <span className={`relative inline-flex rounded-full h-3 w-3 ${isCloud ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                   </span>
-                  <span className={\`text-xs font-bold uppercase \${isCloud ? 'text-emerald-400' : 'text-amber-400'}\`}>
+                  <span className={`text-xs font-bold uppercase ${isCloud ? 'text-emerald-400' : 'text-amber-400'}`}>
                     {isCloud ? 'CLOUD ACTIVE' : 'LOCAL CACHE'}
                   </span>
                 </div>
