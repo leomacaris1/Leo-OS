@@ -10,17 +10,6 @@ interface LogEntry {
   message: string;
 }
 
-const PRESET_LOGS: LogEntry[] = [
-  { timestamp: '02:00:15', type: 'SYSTEM', message: 'OmniAgent Core v1.0.4 initialized.' },
-  { timestamp: '02:00:16', type: 'INFO', message: 'Establishing handshake with secure gateway...' },
-  { timestamp: '02:00:18', type: 'SUCCESS', message: 'Supabase client connected. Auth tier: development.' },
-  { timestamp: '02:00:20', type: 'INFO', message: 'Fetching metadata for system projects...' },
-  { timestamp: '02:00:22', type: 'SUCCESS', message: 'Synchronized 4 active projects. LocalStorage mirror updated.' },
-  { timestamp: '02:01:05', type: 'INFO', message: 'Checking subscription budget billing status...' },
-  { timestamp: '02:01:06', type: 'SUCCESS', message: '5 subscriptions loaded. Current monthly overhead: $76.48.' },
-  { timestamp: '02:02:40', type: 'WARN', message: 'Connection latency detected (250ms). Retrying API endpoints...' },
-  { timestamp: '02:02:42', type: 'SUCCESS', message: 'Connection stabilized. Session integrity at 100%.' },
-];
 
 const SIMULATED_MESSAGES = [
   { type: 'INFO' as const, message: 'Scanning workspace... 6 projects detected in Leo OS registry.' },
@@ -65,7 +54,7 @@ export default function AgentLog() {
       // but terminal usually shows oldest top, newest bottom.
       const formattedLogs: LogEntry[] = dbLogs.map(log => ({
         timestamp: formatTime(log.created_at),
-        type: (log.level.toUpperCase() === 'ERROR' ? 'WARN' : log.level.toUpperCase()) as any,
+        type: (log.level.toUpperCase() === 'ERROR' ? 'WARN' : log.level.toUpperCase()) as LogEntry['type'],
         message: `[${log.component}] ${log.message}`
       })).reverse();
       
@@ -84,7 +73,7 @@ export default function AgentLog() {
         const newLog = payload.new as AgentLogEntry;
         setLogs(prev => [...prev, {
           timestamp: formatTime(newLog.created_at),
-          type: (newLog.level.toUpperCase() === 'ERROR' ? 'WARN' : newLog.level.toUpperCase()) as any,
+          type: (newLog.level.toUpperCase() === 'ERROR' ? 'WARN' : newLog.level.toUpperCase()) as LogEntry['type'],
           message: `[${newLog.component}] ${newLog.message}`
         }]);
       })
