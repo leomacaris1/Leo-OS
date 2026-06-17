@@ -32,6 +32,40 @@ export interface Subscription {
   id: string;
   name: string;
   cost: number;
+import { createClient } from '@supabase/supabase-js';
+
+// Define types for TypeScript safety
+export interface Project {
+  id: string;
+  name: string;
+  status: string;
+  progress: number;
+  tech_stack: string[];
+  description?: string;
+  repo_url?: string;
+  live_url?: string;
+  created_at?: string;
+}
+
+export interface EmailAccount {
+  id: string;
+  email: string;
+  label: 'Personal' | 'Work' | 'Development' | 'Archive';
+  created_at?: string;
+}
+
+export interface SocialProfile {
+  id: string;
+  platform: 'GitHub' | 'LinkedIn' | 'Twitter/X' | 'YouTube' | 'Portfolio';
+  username: string;
+  url: string;
+  created_at?: string;
+}
+
+export interface Subscription {
+  id: string;
+  name: string;
+  cost: number;
   billing_cycle: 'Monthly' | 'Annually';
   status: 'Active' | 'Paused' | 'Expired';
   renewal_date?: string;
@@ -41,9 +75,21 @@ export interface Subscription {
 export interface ProjectTask {
   id: string;
   project_id: string;
+  title: string;
   description: string;
-  is_completed: boolean;
-  created_at?: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  created_at: string;
+}
+
+export interface Agent {
+  id: string;
+  name: string;
+  role: string;
+  system_prompt: string;
+  model: string;
+  status: 'online' | 'offline' | 'busy' | 'training';
+  skills: string[];
+  created_at: string;
 }
 
 export interface AgentLogEntry {
@@ -114,8 +160,8 @@ const INITIAL_NOTIFICATIONS: AppNotification[] = [
 ];
 
 const INITIAL_PROJECT_TASKS: ProjectTask[] = [
-  { id: 't1', project_id: 'p1', description: 'Configurar variables de entorno', is_completed: true, created_at: new Date().toISOString() },
-  { id: 't2', project_id: 'p1', description: 'Integrar OmniAgent', is_completed: false, created_at: new Date().toISOString() },
+  { id: 't1', project_id: 'p1', title: 'Setup', description: 'Configurar variables de entorno', status: 'completed', created_at: new Date().toISOString() },
+  { id: 't2', project_id: 'p1', title: 'Integration', description: 'Integrar OmniAgent', status: 'pending', created_at: new Date().toISOString() },
 ];
 
 // Helper to check if a value is in client-side context (browsers)
@@ -789,6 +835,58 @@ export const dbService = {
     
     const localNotif: AppNotification = { 
       ...newNotif, 
+        if (!error && data) {
+          setLocalData('leo-os-notifications', data);
+          return data as AppNotification[];
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    return getLocalData<AppNotification>('leo-os-notifications', INITIAL_NOTIFICATIONS);
+  },
+
+  async markNotificationAsRead(id: string): Promise<void> {
+    if (supabase) {
+      try {
+        await supabase
+          .from('notifications')
+          .update({ read: true })
+          .eq('id', id);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    const local = getLocalData<AppNotification>('leo-os-notifications', INITIAL_NOTIFICATIONS);
+    const idx = local.findIndex(n => n.id === id);
+    if (idx !== -1) {
+      local[idx].read = true;
+      setLocalData('leo-os-notifications', local);
+    }
+  },
+
+  async createNotification(notification: Omit<AppNotification, 'id' | 'created_at' | 'read'>): Promise<AppNotification | null> {
+    const newNotif = {
+      ...notification,
+      read: false
+    };
+
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('notifications')
+          .insert([newNotif])
+          .select();
+        if (!error && data && data.length > 0) {
+          return data[0] as AppNotification;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    const localNotif: AppNotification = { 
+      ...newNotif, 
       id: `n_${Date.now()}`, 
       created_at: new Date().toISOString() 
     };
@@ -796,6 +894,105 @@ export const dbService = {
     local.unshift(localNotif);
     setLocalData('leo-os-notifications', local);
     return localNotif;
+  },
+
+  // --- AGENTS SERVICES ---
+  async getAgents(): Promise<Agent[]> {
+    if (supabase) {
+      try {
+        const { data, error } = await withSupabaseTimeout(
+          supabase
+            .from('agents')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          'agents fetch'
+        );
+        if (!error && data) {
+          setLocalData('leo-os-agents', data);
+          return data as Agent[];
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    return getLocalData<Agent>('leo-os-agents', []);
+  },
+
+  async createAgent(agent: Omit<Agent, 'id' | 'created_at'>): Promise<Agent | null> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('agents')
+          .insert([agent])
+          .select();
+        
+        if (!error && data && data.length > 0) {
+          const created = data[0] as Agent;
+          const local = getLocalData<Agent>('leo-os-agents', []);
+          local.unshift(created);
+          setLocalData('leo-os-agents', local);
+          
+          // Log creation via the unified service
+          await this.createAgentLog({
+            level: 'system',
+            component: 'AgentBuilder',
+            message: `Nuevo agente instanciado: ${agent.name} (${agent.role})`
+          });
+          
+          return created;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    // Local fallback
+    const localAgent: Agent = { 
+      ...agent, 
+      id: `a_${Date.now()}`, 
+      created_at: new Date().toISOString() 
+    };
+    const local = getLocalData<Agent>('leo-os-agents', []);
+    local.unshift(localAgent);
+    setLocalData('leo-os-agents', local);
+    return localAgent;
+  },
+
+  async deleteAgent(id: string): Promise<boolean> {
+    if (supabase) {
+      try {
+        const { error } = await supabase.from('agents').delete().eq('id', id);
+        if (!error) {
+          const local = getLocalData<Agent>('leo-os-agents', []);
+          setLocalData('leo-os-agents', local.filter(a => a.id !== id));
+          return true;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    const local = getLocalData<Agent>('leo-os-agents', []);
+    setLocalData('leo-os-agents', local.filter(a => a.id !== id));
+    return true;
+  },
+
+  // Helper inside dbService to create logs properly
+  async createAgentLog(log: Omit<AgentLogEntry, 'id' | 'created_at'>): Promise<void> {
+    if (supabase) {
+      try {
+        await supabase.from('agent_logs').insert([log]);
+        return;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    const localLog: AgentLogEntry = {
+      ...log,
+      id: `l_${Date.now()}`,
+      created_at: new Date().toISOString()
+    };
+    const local = getLocalData<AgentLogEntry>('leo-os-agent-logs', []);
+    local.unshift(localLog);
+    setLocalData('leo-os-agent-logs', local);
   }
 };
-
