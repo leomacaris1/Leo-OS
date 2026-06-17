@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Terminal, Play, Trash2, Filter, Cpu } from 'lucide-react';
+import { dbService, supabase, AgentLogEntry } from '../lib/supabase';
 
 interface LogEntry {
   timestamp: string;
@@ -37,11 +38,17 @@ const SIMULATED_MESSAGES = [
 ];
 
 export default function AgentLog() {
-  const [logs, setLogs] = useState<LogEntry[]>(PRESET_LOGS);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [filter, setFilter] = useState<'ALL' | 'INFO' | 'SUCCESS' | 'WARN' | 'SYSTEM'>('ALL');
   const [inputVal, setInputVal] = useState('');
-  const [isSimulating, setIsSimulating] = useState(true);
+  const [isSimulating, setIsSimulating] = useState(false);
   const logContainerRef = useRef<HTMLDivElement>(null);
+
+  const formatTime = (isoString: string) => {
+    const date = new Date(isoString);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  };
 
   // Scroll to bottom when logs update
   useEffect(() => {
@@ -50,21 +57,67 @@ export default function AgentLog() {
     }
   }, [logs]);
 
-  // Simulate real-time logs appending
+  // Load real logs from database on mount
+  useEffect(() => {
+    const fetchLogs = async () => {
+      const dbLogs = await dbService.getAgentLogs();
+      // AgentLogs order is desc (newest first) by default in dbService,
+      // but terminal usually shows oldest top, newest bottom.
+      const formattedLogs: LogEntry[] = dbLogs.map(log => ({
+        timestamp: formatTime(log.created_at),
+        type: (log.level.toUpperCase() === 'ERROR' ? 'WARN' : log.level.toUpperCase()) as any,
+        message: `[${log.component}] ${log.message}`
+      })).reverse();
+      
+      setLogs(formattedLogs);
+    };
+    fetchLogs();
+  }, []);
+
+  // Subscribe to real-time events via Supabase
+  useEffect(() => {
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel('agent_logs_changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'agent_logs' }, (payload) => {
+        const newLog = payload.new as AgentLogEntry;
+        setLogs(prev => [...prev, {
+          timestamp: formatTime(newLog.created_at),
+          type: (newLog.level.toUpperCase() === 'ERROR' ? 'WARN' : newLog.level.toUpperCase()) as any,
+          message: `[${newLog.component}] ${newLog.message}`
+        }]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Traffic generator (send data to our API webhook to simulate external Agent activity)
   useEffect(() => {
     if (!isSimulating) return;
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       const randomMsg = SIMULATED_MESSAGES[Math.floor(Math.random() * SIMULATED_MESSAGES.length)];
-      const now = new Date();
-      const pad = (n: number) => String(n).padStart(2, '0');
-      const timestamp = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
       
-      setLogs(prev => [...prev, {
-        timestamp,
-        type: randomMsg.type,
-        message: randomMsg.message
-      }]);
+      try {
+        await fetch('/api/webhooks/nexus', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            event: 'log',
+            level: randomMsg.type === 'WARN' ? 'WARNING' : randomMsg.type,
+            component: 'System Simulator',
+            message: randomMsg.message
+          })
+        });
+      } catch (e) {
+        console.error('Failed to post simulated log to webhook', e);
+      }
     }, 8000);
 
     return () => clearInterval(interval);
@@ -206,7 +259,7 @@ export default function AgentLog() {
             }`}
           >
             <Play className={`w-3.5 h-3.5 ${isSimulating ? 'animate-spin-slow' : ''}`} />
-            {isSimulating ? 'Simulación Activa' : 'Simulación Pausada'}
+            {isSimulating ? 'Generador Activo' : 'Generar Tráfico de Prueba'}
           </button>
 
           <button
