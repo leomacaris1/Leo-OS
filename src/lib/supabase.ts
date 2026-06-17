@@ -32,40 +32,6 @@ export interface Subscription {
   id: string;
   name: string;
   cost: number;
-import { createClient } from '@supabase/supabase-js';
-
-// Define types for TypeScript safety
-export interface Project {
-  id: string;
-  name: string;
-  status: string;
-  progress: number;
-  tech_stack: string[];
-  description?: string;
-  repo_url?: string;
-  live_url?: string;
-  created_at?: string;
-}
-
-export interface EmailAccount {
-  id: string;
-  email: string;
-  label: 'Personal' | 'Work' | 'Development' | 'Archive';
-  created_at?: string;
-}
-
-export interface SocialProfile {
-  id: string;
-  platform: 'GitHub' | 'LinkedIn' | 'Twitter/X' | 'YouTube' | 'Portfolio';
-  username: string;
-  url: string;
-  created_at?: string;
-}
-
-export interface Subscription {
-  id: string;
-  name: string;
-  cost: number;
   billing_cycle: 'Monthly' | 'Annually';
   status: 'Active' | 'Paused' | 'Expired';
   renewal_date?: string;
@@ -794,57 +760,6 @@ export const dbService = {
     return getLocalData<AppNotification>('leo-os-notifications', INITIAL_NOTIFICATIONS);
   },
 
-  async markNotificationAsRead(id: string): Promise<void> {
-    if (supabase) {
-      try {
-        await supabase
-          .from('notifications')
-          .update({ read: true })
-          .eq('id', id);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    const local = getLocalData<AppNotification>('leo-os-notifications', INITIAL_NOTIFICATIONS);
-    const idx = local.findIndex(n => n.id === id);
-    if (idx !== -1) {
-      local[idx].read = true;
-      setLocalData('leo-os-notifications', local);
-    }
-  },
-
-  async createNotification(notification: Omit<AppNotification, 'id' | 'created_at' | 'read'>): Promise<AppNotification | null> {
-    const newNotif = {
-      ...notification,
-      read: false
-    };
-
-    if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('notifications')
-          .insert([newNotif])
-          .select();
-        if (!error && data && data.length > 0) {
-          return data[0] as AppNotification;
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    
-    const localNotif: AppNotification = { 
-      ...newNotif, 
-        if (!error && data) {
-          setLocalData('leo-os-notifications', data);
-          return data as AppNotification[];
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    return getLocalData<AppNotification>('leo-os-notifications', INITIAL_NOTIFICATIONS);
-  },
 
   async markNotificationAsRead(id: string): Promise<void> {
     if (supabase) {

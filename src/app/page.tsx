@@ -16,6 +16,7 @@ import Projects from '../components/Projects';
 import Accounts from '../components/Accounts';
 import Agents from '../components/Agents';
 import Settings from '../components/Settings';
+import Webhooks from '../components/Webhooks';
 import AgentLog from '../components/AgentLog';
 import AgentLogsLive from '../components/AgentLogsLive';
 import CommandPalette from '../components/CommandPalette';
@@ -102,30 +103,18 @@ export default function Page() {
   // Global Navigation Hotkeys
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
         return;
       }
       
       switch (e.key) {
-        case '1':
-          setActiveSection('home');
-          break;
-        case '2':
-          setActiveSection('projects');
-          break;
-        case '3':
-          setActiveSection('agents');
-          break;
-        case '4':
-          setActiveSection('accounts');
-          break;
-        case '5':
-          setActiveSection('terminal');
-          break;
+        case '1': setActiveSection('home'); break;
+        case '2': setActiveSection('projects'); break;
+        case '3': setActiveSection('agents'); break;
+        case '4': setActiveSection('accounts'); break;
+        case '5': setActiveSection('terminal'); break;
       }
       
-      // Global Command Palette shortcut
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsCommandPaletteOpen(true);
@@ -140,13 +129,11 @@ export default function Page() {
 
     if (!supabase) return;
 
-    // Realtime subscriptions
     const channel = supabase.channel('schema-db-changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public' },
         (payload) => {
-          // Whenever ANY table changes, we reload all data to ensure we have the latest.
           console.log('Realtime change received!', payload);
           
           if (payload.table === 'notifications' && payload.eventType === 'INSERT') {
@@ -165,6 +152,7 @@ export default function Page() {
     return () => {
       supabase?.removeChannel(channel);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Listen to local DB changes for local fallback mode
@@ -176,6 +164,7 @@ export default function Page() {
       window.addEventListener('local-db-changed', handleLocalDbChange);
       return () => window.removeEventListener('local-db-changed', handleLocalDbChange);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backendMode]);
 
   // --- CRUD Event Handlers ---
@@ -218,9 +207,7 @@ export default function Page() {
   const handleDeleteEmail = async (id: string) => {
     try {
       const ok = await dbService.deleteEmail(id);
-      if (ok) {
-        setEmails(prev => prev.filter(e => e.id !== id));
-      }
+      if (ok) setEmails(prev => prev.filter(e => e.id !== id));
     } catch (e) {
       console.error(e);
     }
@@ -247,9 +234,7 @@ export default function Page() {
   const handleDeleteSocial = async (id: string) => {
     try {
       const ok = await dbService.deleteSocial(id);
-      if (ok) {
-        setSocials(prev => prev.filter(s => s.id !== id));
-      }
+      if (ok) setSocials(prev => prev.filter(s => s.id !== id));
     } catch (e) {
       console.error(e);
     }
@@ -276,9 +261,7 @@ export default function Page() {
   const handleDeleteSubscription = async (id: string) => {
     try {
       const ok = await dbService.deleteSubscription(id);
-      if (ok) {
-        setSubscriptions(prev => prev.filter(s => s.id !== id));
-      }
+      if (ok) setSubscriptions(prev => prev.filter(s => s.id !== id));
     } catch (e) {
       console.error(e);
     }
@@ -325,7 +308,15 @@ export default function Page() {
 
     switch (activeSection) {
       case 'home':
-        return <Dashboard />;
+        return (
+          <Dashboard 
+            projects={projects}
+            subscriptions={subscriptions}
+            notifications={notifications}
+            backendMode={backendMode}
+            onNavigate={setActiveSection}
+          />
+        );
       case 'projects':
         return (
           <Projects 
@@ -359,6 +350,8 @@ export default function Page() {
         return <AgentLogsLive />;
       case 'settings':
         return <Settings />;
+      case 'webhooks':
+        return <Webhooks />;
       default:
         return (
           <div className="text-center text-slate-500 font-mono py-12">
@@ -428,7 +421,7 @@ export default function Page() {
           setActiveSection(section);
         }}
         onCreateProject={() => {
-          setActiveSection('dashboard');
+          setActiveSection('projects');
         }}
       />
 

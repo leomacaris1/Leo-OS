@@ -10,7 +10,8 @@ import {
   CreditCard,
   Shield,
   Activity,
-  Bot
+  Bot,
+  Webhook
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -33,6 +34,7 @@ export default function Sidebar({ activeSection, setActiveSection, stats }: Side
     { id: 'terminal', label: 'Terminal', icon: Terminal, desc: 'Simulador de Comandos' },
     { id: 'logs', label: 'Logs', icon: Activity, desc: 'Telemetría Real' },
     { id: 'settings', label: 'Settings', icon: Settings, desc: 'Preferencias del Sistema' },
+    { id: 'webhooks', label: 'Webhooks', icon: Webhook, desc: 'Integraciones Externas' },
   ];
 
   return (

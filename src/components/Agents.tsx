@@ -137,7 +137,7 @@ export default function Agents() {
               </div>
 
               <p className="text-sm text-slate-400 line-clamp-2 mb-4">
-                "{agent.system_prompt}"
+                &quot;{agent.system_prompt}&quot;
               </p>
 
               <div className="flex flex-wrap gap-2 mb-4">
