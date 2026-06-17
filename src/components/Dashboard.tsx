@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Activity, Zap, ShieldAlert, Cpu, Server, Network, Database,
   Layers, CreditCard, Bot, ArrowRight, Bell, TrendingUp, Clock
 } from 'lucide-react';
-import { Project, Subscription, AppNotification, EmailAccount } from '../lib/supabase';
+import { Project, Subscription, AppNotification } from '../lib/supabase';
 
 interface DashboardProps {
   projects: Project[];

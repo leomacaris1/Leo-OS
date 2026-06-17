@@ -53,7 +53,7 @@ export default function Webhooks() {
         const errorData = await res.json();
         toast.error(`Error: ${errorData.error || 'Fallo de autorización'}`);
       }
-    } catch (_e) {
+    } catch {
       toast.error('Error de red al disparar Webhook');
     } finally {
       setIsTesting(false);
