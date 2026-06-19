@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, Command, Terminal, Plus, Folder, Layout, Cpu, 
-  Bot, CreditCard, Mail, Webhook, Settings, MessageSquare
+  Bot, CreditCard, Mail, Webhook, Settings, MessageSquare, Database
 } from 'lucide-react';
 import { dbService, Project, Agent, Subscription, EmailAccount } from '../lib/supabase';
 
@@ -96,6 +96,7 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
     { id: 'nav-management', label: 'Ir al Command Center', icon: <Terminal className="w-4 h-4 text-purple-400" />, action: () => onNavigate('management') },
     { id: 'nav-agents', label: 'Ir a la Fábrica de Agentes', icon: <Bot className="w-4 h-4 text-rose-400" />, action: () => onNavigate('agents') },
     { id: 'nav-sandbox', label: 'Ir al Sandbox (Arena de Agentes)', icon: <MessageSquare className="w-4 h-4 text-amber-500" />, action: () => onNavigate('sandbox') },
+    { id: 'nav-database', label: 'Ir a Database (Data Explorer)', icon: <Database className="w-4 h-4 text-fuchsia-400" />, action: () => onNavigate('database') },
     { id: 'nav-webhooks', label: 'Ir a Webhooks & Eventos', icon: <Webhook className="w-4 h-4 text-amber-400" />, action: () => onNavigate('webhooks') },
     { id: 'nav-logs', label: 'Ver Logs del Sistema', icon: <Cpu className="w-4 h-4 text-emerald-400" />, action: () => onNavigate('logs') },
     { id: 'create-project', label: 'Crear Nuevo Proyecto', icon: <Plus className="w-4 h-4 text-cyan-400" />, action: () => onNavigate('projects') },

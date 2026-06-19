@@ -12,7 +12,8 @@ import {
   Activity,
   Bot,
   Webhook,
-  MessageSquare
+  MessageSquare,
+  Database
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -32,6 +33,7 @@ export default function Sidebar({ activeSection, setActiveSection, stats }: Side
     { id: 'projects', label: 'Projects', icon: Layers, desc: 'Gestión de Núcleos' },
     { id: 'agents', label: 'Agents', icon: Bot, desc: 'Flota Autónoma' },
     { id: 'sandbox', label: 'Sandbox', icon: MessageSquare, desc: 'Arena de Pruebas' },
+    { id: 'database', label: 'Database', icon: Database, desc: 'Data Explorer' },
     { id: 'accounts', label: 'Accounts', icon: CreditCard, desc: 'Identidades y Finanzas' },
     { id: 'terminal', label: 'Terminal', icon: Terminal, desc: 'Simulador de Comandos' },
     { id: 'logs', label: 'Logs', icon: Activity, desc: 'Telemetría Real' },

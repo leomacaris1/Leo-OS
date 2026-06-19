@@ -16,6 +16,7 @@ import Projects from '../components/Projects';
 import Accounts from '../components/Accounts';
 import Agents from '../components/Agents';
 import AgentSandbox from '../components/AgentSandbox';
+import DatabaseViewer from '../components/DatabaseViewer';
 import Settings from '../components/Settings';
 import Webhooks from '../components/Webhooks';
 import AgentLog from '../components/AgentLog';
@@ -115,6 +116,7 @@ export default function Page() {
         case '4': setActiveSection('sandbox'); break;
         case '5': setActiveSection('accounts'); break;
         case '6': setActiveSection('terminal'); break;
+        case '7': setActiveSection('database'); break;
       }
       
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -356,6 +358,8 @@ export default function Page() {
         return <Settings />;
       case 'webhooks':
         return <Webhooks />;
+      case 'database':
+        return <DatabaseViewer />;
       default:
         return (
           <div className="text-center text-slate-500 font-mono py-12">
