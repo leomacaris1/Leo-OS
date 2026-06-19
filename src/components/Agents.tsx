@@ -180,7 +180,7 @@ export default function Agents() {
                 <Zap className="text-cyan-400 w-6 h-6" />
                 Ensamblar Agente
               </h3>
-              <button onClick={() => setIsCreating(false)} className="text-slate-500 hover:text-rose-400 transition-colors">
+              <button onClick={() => setIsCreating(false)} aria-label="Cerrar modal" title="Cerrar modal" className="text-slate-500 hover:text-rose-400 transition-colors">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -226,6 +226,7 @@ export default function Agents() {
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase text-slate-400 tracking-wider">Cerebro (Modelo LLM)</label>
                 <select 
+                  aria-label="Seleccionar Cerebro (Modelo LLM)" title="Seleccionar Cerebro (Modelo LLM)"
                   value={formData.model}
                   onChange={(e) => setFormData({...formData, model: e.target.value})}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-200 focus:outline-none focus:border-cyan-500/50"

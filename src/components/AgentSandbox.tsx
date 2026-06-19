@@ -221,6 +221,7 @@ export default function AgentSandbox() {
                 />
                 <button
                   type="submit"
+                  aria-label="Enviar mensaje" title="Enviar mensaje"
                   disabled={!inputValue.trim() || isTyping}
                   className="absolute right-2 top-2 bottom-2 aspect-square flex items-center justify-center bg-cyan-500 hover:bg-cyan-400 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 rounded-lg transition-colors"
                 >

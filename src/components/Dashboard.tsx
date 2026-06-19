@@ -158,15 +158,14 @@ export default function Dashboard({ projects, subscriptions, notifications, back
                       </div>
                       <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800">
                         <div 
-                          className="h-full rounded-full transition-all duration-700 ease-out"
-                          style={{ 
-                            width: `${project.progress}%`,
-                            background: project.progress >= 80 
-                              ? 'linear-gradient(90deg, #06b6d4, #10b981)' 
+                          className={`h-full rounded-full transition-all duration-700 ease-out bg-gradient-to-r ${
+                            project.progress >= 80 
+                              ? 'from-cyan-500 to-emerald-500' 
                               : project.progress >= 50 
-                                ? 'linear-gradient(90deg, #06b6d4, #8b5cf6)' 
-                                : 'linear-gradient(90deg, #f59e0b, #ef4444)'
-                          }}
+                                ? 'from-cyan-500 to-purple-500' 
+                                : 'from-amber-500 to-red-500'
+                          }`}
+                          style={{ width: `${project.progress}%` }}
                         ></div>
                       </div>
                       <div className="flex items-center gap-2 mt-1.5">
