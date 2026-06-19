@@ -71,9 +71,14 @@ export default function AgentSandbox() {
         content: m.content,
       }));
 
+      const savedKey = localStorage.getItem('leo-os-gemini-key') || '';
+
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-gemini-key': savedKey
+        },
         body: JSON.stringify({
           messages: chatHistory,
           agentName: activeAgent.name,

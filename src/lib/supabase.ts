@@ -809,6 +809,12 @@ export const dbService = {
     const local = getLocalData<AppNotification>('leo-os-notifications', INITIAL_NOTIFICATIONS);
     local.unshift(localNotif);
     setLocalData('leo-os-notifications', local);
+
+    if (isBrowser) {
+      window.dispatchEvent(new Event('local-db-changed'));
+      window.dispatchEvent(new CustomEvent('local-notification-created', { detail: localNotif }));
+    }
+
     return localNotif;
   },
 
@@ -872,6 +878,38 @@ export const dbService = {
     local.unshift(localAgent);
     setLocalData('leo-os-agents', local);
     return localAgent;
+  },
+
+  async updateAgent(id: string, updates: Partial<Agent>): Promise<Agent> {
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('agents')
+          .update(updates)
+          .eq('id', id)
+          .select();
+        
+        if (!error && data && data.length > 0) {
+          const local = getLocalData<Agent>('leo-os-agents', []);
+          const idx = local.findIndex(a => a.id === id);
+          if (idx !== -1) {
+            local[idx] = data[0] as Agent;
+            setLocalData('leo-os-agents', local);
+          }
+          return data[0] as Agent;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    const local = getLocalData<Agent>('leo-os-agents', []);
+    const idx = local.findIndex(a => a.id === id);
+    if (idx !== -1) {
+      local[idx] = { ...local[idx], ...updates };
+      setLocalData('leo-os-agents', local);
+      return local[idx];
+    }
+    throw new Error('Agent not found');
   },
 
   async deleteAgent(id: string): Promise<boolean> {

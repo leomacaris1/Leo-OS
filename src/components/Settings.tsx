@@ -195,7 +195,82 @@ export default function Settings() {
               </div>
             </div>
           </div>
+
+          {/* API Keys Settings */}
+          <ApiKeysSection />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ApiKeysSection() {
+  const [apiKey, setApiKey] = useState('');
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    const savedKey = localStorage.getItem('leo-os-gemini-key') || '';
+    setApiKey(savedKey);
+    setIsSaved(!!savedKey);
+  }, []);
+
+  const handleSave = () => {
+    if (apiKey.trim()) {
+      localStorage.setItem('leo-os-gemini-key', apiKey.trim());
+      setIsSaved(true);
+    } else {
+      localStorage.removeItem('leo-os-gemini-key');
+      setIsSaved(false);
+    }
+  };
+
+  return (
+    <div className="glass-card rounded-2xl p-6 border border-slate-800/60">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-rose-500/10 rounded-lg">
+          <Zap className="w-5 h-5 text-rose-400" />
+        </div>
+        <h3 className="text-lg font-bold text-slate-200">Claves de API (Integraciones)</h3>
+      </div>
+      
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="gemini-key-input" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            Google Gemini API Key
+          </label>
+          <input
+            type="password"
+            id="gemini-key-input"
+            value={apiKey}
+            onChange={(e) => {
+              setApiKey(e.target.value);
+              setIsSaved(false);
+            }}
+            placeholder="AIzaSy..."
+            className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm font-mono"
+          />
+          <p className="text-[10px] text-slate-500 mt-1.5">
+            Se almacena únicamente de forma local en tu navegador y se envía a la API encriptada en la petición.
+          </p>
+        </div>
+
+        <button
+          onClick={handleSave}
+          className={`w-full flex items-center justify-center gap-2 p-3 rounded-xl border text-sm font-bold transition-all duration-300 ${
+            isSaved 
+              ? 'bg-emerald-950/20 border-emerald-500/50 text-emerald-400 hover:bg-emerald-950/40' 
+              : 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/20'
+          }`}
+        >
+          {isSaved ? (
+            <>
+              <Check className="w-4 h-4" />
+              API Key Configurada y Guardada
+            </>
+          ) : (
+            'Guardar API Key'
+          )}
+        </button>
       </div>
     </div>
   );

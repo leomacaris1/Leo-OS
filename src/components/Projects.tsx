@@ -18,6 +18,7 @@ import {
   Grid
 } from 'lucide-react';
 import ProjectAuditModal from './ProjectAuditModal';
+import ProjectDetailsDrawer from './ProjectDetailsDrawer';
 import { toast } from 'sonner';
 
 interface ProjectsProps {
@@ -51,6 +52,7 @@ export default function Projects({ projects, onUpdateProject, onCreateProject }:
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isAddingProject, setIsAddingProject] = useState(false);
   const [auditingProject, setAuditingProject] = useState<Project | null>(null);
+  const [selectedDetailsProject, setSelectedDetailsProject] = useState<Project | null>(null);
 
   // Form states for creating a new project
   const [newName, setNewName] = useState('');
@@ -282,7 +284,11 @@ export default function Projects({ projects, onUpdateProject, onCreateProject }:
           
           if (viewMode === 'compact') {
             return (
-              <div key={project.id} className="glass-card rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between border group hover:bg-slate-900/80 transition-all duration-300 gap-4 sm:gap-0">
+              <div 
+                key={project.id} 
+                onClick={() => setSelectedDetailsProject(project)}
+                className="glass-card rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between border border-slate-800/80 group hover:bg-slate-900/80 hover:border-slate-700/50 transition-all duration-300 gap-4 sm:gap-0 cursor-pointer"
+              >
                 <div className="flex items-center gap-4 w-full sm:w-1/3">
                   <div className="flex-1">
                     <h3 className="text-base font-bold text-slate-200 group-hover:text-cyan-300 transition-colors">
@@ -319,14 +325,20 @@ export default function Projects({ projects, onUpdateProject, onCreateProject }:
 
                 <div className="flex items-center gap-2 justify-end w-full sm:w-1/3">
                   <button
-                    onClick={() => setAuditingProject(project)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAuditingProject(project);
+                    }}
                     className="p-1.5 rounded-md text-teal-400 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 transition-colors"
                     title="Auditar"
                   >
                     <CheckSquare className="w-4 h-4" />
                   </button>
                   <button 
-                    onClick={() => openEditModal(project)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(project);
+                    }}
                     className="p-1.5 rounded-md text-slate-400 hover:text-cyan-400 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 transition-colors"
                     title="Editar"
                   >
@@ -338,7 +350,11 @@ export default function Projects({ projects, onUpdateProject, onCreateProject }:
           }
 
           return (
-            <div key={project.id} className="glass-card rounded-2xl p-6 flex flex-col justify-between border relative overflow-hidden group hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all duration-300 bg-slate-950/50 hover:bg-slate-900/80">
+            <div 
+              key={project.id} 
+              onClick={() => setSelectedDetailsProject(project)}
+              className="glass-card rounded-2xl p-6 flex flex-col justify-between border relative overflow-hidden group hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all duration-300 bg-slate-950/50 hover:bg-slate-900/80 cursor-pointer"
+            >
               {/* Decorative top-border line glow */}
               <span className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent group-hover:via-cyan-400/50 transition-all duration-500"></span>
 
@@ -413,6 +429,7 @@ export default function Projects({ projects, onUpdateProject, onCreateProject }:
                       href={project.repo_url}
                       target="_blank"
                       rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
                       className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white font-medium bg-slate-900 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 transition-all duration-300"
                       title="Ver Código"
                     >
@@ -425,6 +442,7 @@ export default function Projects({ projects, onUpdateProject, onCreateProject }:
                       href={project.live_url}
                       target="_blank"
                       rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
                       className="flex items-center gap-1.5 text-xs text-teal-400 hover:text-teal-300 font-medium bg-teal-950/20 hover:bg-teal-950/40 px-3 py-1.5 rounded-lg border border-teal-500/30 transition-all duration-300"
                       title="Ver Live"
                     >
@@ -433,14 +451,20 @@ export default function Projects({ projects, onUpdateProject, onCreateProject }:
                     </a>
                   )}
                   <button
-                    onClick={() => setAuditingProject(project)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAuditingProject(project);
+                    }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 hover:shadow-[0_0_15px_rgba(45,212,191,0.4)] transition-all duration-300 transform hover:-translate-y-0.5"
                   >
                     <CheckSquare className="w-3.5 h-3.5" />
                     Auditar
                   </button>
                   <button 
-                    onClick={() => openEditModal(project)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(project);
+                    }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 bg-transparent hover:bg-slate-800 border border-slate-700 hover:border-slate-500 hover:text-slate-200 transition-all duration-300"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
@@ -730,6 +754,13 @@ export default function Projects({ projects, onUpdateProject, onCreateProject }:
             </form>
           </div>
         </div>
+      )}
+      {selectedDetailsProject && (
+        <ProjectDetailsDrawer
+          project={selectedDetailsProject}
+          onClose={() => setSelectedDetailsProject(null)}
+          onUpdateProject={onUpdateProject}
+        />
       )}
     </div>
   );

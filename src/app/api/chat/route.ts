@@ -16,12 +16,13 @@ export async function POST(request: NextRequest) {
       model: string;
     };
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const headerKey = request.headers.get('x-gemini-key');
+    const apiKey = process.env.GEMINI_API_KEY || (headerKey && headerKey.trim() !== '' ? headerKey : null);
 
     // ── Fallback: No API key configured ─────────────────────────
     if (!apiKey) {
       return NextResponse.json({
-        content: `[Modo Simulado] No se ha configurado GEMINI_API_KEY en .env.local. Soy "${agentName}" y mi directiva es: "${systemPrompt}". Cuando conectes una API key real, responderé con inteligencia artificial de verdad.`,
+        content: `[Modo Simulado] No se ha configurado GEMINI_API_KEY en el servidor ni en Settings. Soy "${agentName}" y mi directiva es: "${systemPrompt}". Cuando guardes una API key real en Settings o en el entorno, responderé con inteligencia artificial de verdad.`,
         mode: 'simulated',
       });
     }

@@ -165,8 +165,23 @@ export default function Page() {
       const handleLocalDbChange = () => {
         loadAllData();
       };
+
+      const handleLocalNotification = (e: Event) => {
+        const customEvent = e as CustomEvent<AppNotification>;
+        if (customEvent.detail) {
+          toast(customEvent.detail.title, {
+            description: customEvent.detail.message,
+            icon: customEvent.detail.type === 'error' ? '❌' : customEvent.detail.type === 'success' ? '✅' : '🔔'
+          });
+        }
+      };
+
       window.addEventListener('local-db-changed', handleLocalDbChange);
-      return () => window.removeEventListener('local-db-changed', handleLocalDbChange);
+      window.addEventListener('local-notification-created', handleLocalNotification as EventListener);
+      return () => {
+        window.removeEventListener('local-db-changed', handleLocalDbChange);
+        window.removeEventListener('local-notification-created', handleLocalNotification as EventListener);
+      };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backendMode]);

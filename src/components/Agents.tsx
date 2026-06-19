@@ -16,6 +16,7 @@ export default function Agents() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form State
@@ -47,16 +48,43 @@ export default function Agents() {
     }));
   };
 
-  const handleCreateAgent = async (e: React.FormEvent) => {
+  const handleStartEdit = (agent: Agent) => {
+    setFormData({
+      name: agent.name,
+      role: agent.role,
+      system_prompt: agent.system_prompt,
+      model: agent.model,
+      skills: agent.skills || []
+    });
+    setEditingAgent(agent);
+  };
+
+  const handleToggleStatus = async (agent: Agent) => {
+    const statusCycle: Record<string, Agent['status']> = {
+      'online': 'busy',
+      'busy': 'training',
+      'training': 'offline',
+      'offline': 'online'
+    };
+    const nextStatus = statusCycle[agent.status] || 'offline';
+    await dbService.updateAgent(agent.id, { status: nextStatus });
+    loadAgents();
+  };
+
+  const handleSubmitAgent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.role || !formData.system_prompt) return;
 
     setIsSubmitting(true);
     
-    await dbService.createAgent({
-      ...formData,
-      status: 'offline'
-    });
+    if (editingAgent) {
+      await dbService.updateAgent(editingAgent.id, formData);
+    } else {
+      await dbService.createAgent({
+        ...formData,
+        status: 'offline'
+      });
+    }
 
     // Reset and reload
     setFormData({
@@ -67,6 +95,7 @@ export default function Agents() {
       skills: []
     });
     setIsCreating(false);
+    setEditingAgent(null);
     setIsSubmitting(false);
     loadAgents();
   };
@@ -126,13 +155,17 @@ export default function Agents() {
                   <p className="text-xs text-purple-400 font-mono uppercase tracking-wider">{agent.role}</p>
                 </div>
                 <div className="flex gap-2">
-                  <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
-                    agent.status === 'online' ? 'bg-emerald-950/30 text-emerald-400 border border-emerald-500/30' : 
-                    agent.status === 'offline' ? 'bg-slate-900 text-slate-500 border border-slate-700' :
-                    'bg-amber-950/30 text-amber-400 border border-amber-500/30'
-                  }`}>
+                  <button 
+                    onClick={() => handleToggleStatus(agent)}
+                    title="Clic para alternar estado"
+                    className={`px-2 py-1 rounded text-xs font-bold uppercase cursor-pointer hover:opacity-80 transition-opacity ${
+                      agent.status === 'online' ? 'bg-emerald-950/30 text-emerald-400 border border-emerald-500/30' : 
+                      agent.status === 'offline' ? 'bg-slate-900 text-slate-500 border border-slate-700' :
+                      'bg-amber-950/30 text-amber-400 border border-amber-500/30'
+                    }`}
+                  >
                     {agent.status}
-                  </span>
+                  </button>
                 </div>
               </div>
 
@@ -157,35 +190,43 @@ export default function Agents() {
                   MODEL: <span className="text-cyan-500">{agent.model}</span>
                 </span>
                 
-                <button 
-                  onClick={() => handleDeleteAgent(agent.id)}
-                  className="opacity-0 group-hover:opacity-100 text-rose-500 hover:text-rose-400 text-xs transition-opacity"
-                >
-                  Desmantelar
-                </button>
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => handleStartEdit(agent)}
+                    className="opacity-0 group-hover:opacity-100 text-cyan-400 hover:text-cyan-300 text-xs transition-opacity"
+                  >
+                    Editar
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteAgent(agent.id)}
+                    className="opacity-0 group-hover:opacity-100 text-rose-500 hover:text-rose-400 text-xs transition-opacity"
+                  >
+                    Desmantelar
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Creation Modal Overlay */}
-      {isCreating && (
+      {/* Creation / Edit Modal Overlay */}
+      {(isCreating || editingAgent) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setIsCreating(false)}></div>
+          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => { setIsCreating(false); setEditingAgent(null); }}></div>
           
           <div className="relative bg-[#0a0f18] border border-cyan-500/30 shadow-[0_0_50px_-12px_rgba(0,240,255,0.2)] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
             <div className="sticky top-0 bg-[#0a0f18]/90 backdrop-blur-md p-6 border-b border-slate-800 flex justify-between items-center z-10">
               <h3 className="text-2xl font-bold flex items-center gap-2 text-slate-100">
                 <Zap className="text-cyan-400 w-6 h-6" />
-                Ensamblar Agente
+                {editingAgent ? 'Reconfigurar Agente' : 'Ensamblar Agente'}
               </h3>
-              <button onClick={() => setIsCreating(false)} aria-label="Cerrar modal" title="Cerrar modal" className="text-slate-500 hover:text-rose-400 transition-colors">
+              <button onClick={() => { setIsCreating(false); setEditingAgent(null); }} aria-label="Cerrar modal" title="Cerrar modal" className="text-slate-500 hover:text-rose-400 transition-colors">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateAgent} className="p-6 space-y-6">
+            <form onSubmit={handleSubmitAgent} className="p-6 space-y-6">
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -264,7 +305,7 @@ export default function Agents() {
               <div className="pt-6 border-t border-slate-800 flex justify-end gap-3">
                 <button 
                   type="button"
-                  onClick={() => setIsCreating(false)}
+                  onClick={() => { setIsCreating(false); setEditingAgent(null); }}
                   className="px-5 py-2.5 rounded-lg font-bold text-slate-400 hover:text-slate-200 transition-colors"
                 >
                   Cancelar
@@ -275,7 +316,7 @@ export default function Agents() {
                   className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-6 py-2.5 rounded-lg font-extrabold flex items-center gap-2 transition-all disabled:opacity-50"
                 >
                   {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                  {isSubmitting ? 'Ensamblando...' : 'Instanciar Agente'}
+                  {isSubmitting ? (editingAgent ? 'Guardando...' : 'Ensamblando...') : (editingAgent ? 'Guardar Cambios' : 'Instanciar Agente')}
                 </button>
               </div>
             </form>
