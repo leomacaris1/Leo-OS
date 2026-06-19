@@ -15,6 +15,7 @@ import Dashboard from '../components/Dashboard';
 import Projects from '../components/Projects';
 import Accounts from '../components/Accounts';
 import Agents from '../components/Agents';
+import AgentSandbox from '../components/AgentSandbox';
 import Settings from '../components/Settings';
 import Webhooks from '../components/Webhooks';
 import AgentLog from '../components/AgentLog';
@@ -111,8 +112,9 @@ export default function Page() {
         case '1': setActiveSection('home'); break;
         case '2': setActiveSection('projects'); break;
         case '3': setActiveSection('agents'); break;
-        case '4': setActiveSection('accounts'); break;
-        case '5': setActiveSection('terminal'); break;
+        case '4': setActiveSection('sandbox'); break;
+        case '5': setActiveSection('accounts'); break;
+        case '6': setActiveSection('terminal'); break;
       }
       
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -327,6 +329,8 @@ export default function Page() {
         );
       case 'agents':
         return <Agents />;
+      case 'sandbox':
+        return <AgentSandbox />;
       case 'accounts':
         return (
           <Accounts 
