@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Terminal, Play, Trash2, Filter, Cpu } from 'lucide-react';
 import { dbService, supabase, AgentLogEntry } from '../lib/supabase';
 
@@ -31,13 +31,22 @@ export default function AgentLog() {
   const [filter, setFilter] = useState<'ALL' | 'INFO' | 'SUCCESS' | 'WARN' | 'SYSTEM'>('ALL');
   const [inputVal, setInputVal] = useState('');
   const [isSimulating, setIsSimulating] = useState(false);
+  const [commandHistory, setCommandHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const logContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const formatTime = (isoString: string) => {
     const date = new Date(isoString);
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
   };
+
+  const getNowTimestamp = useCallback(() => {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  }, []);
 
   // Scroll to bottom when logs update
   useEffect(() => {
@@ -114,96 +123,250 @@ export default function AgentLog() {
     return () => clearInterval(interval);
   }, [isSimulating]);
 
-  // Handle manual command execution
+  // ── Command Parser ──────────────────────────────────────────
+  const executeCommand = async (rawInput: string) => {
+    const cmd = rawInput.trim();
+    const cmdLower = cmd.toLowerCase();
+    const timestamp = getNowTimestamp();
+
+    // Echo the user's command
+    const userLog: LogEntry = {
+      timestamp,
+      type: 'SYSTEM',
+      message: `USR@LEO-OS:~$ ${cmd}`
+    };
+
+    // ── help ───────────────────────────────────────────────────
+    if (cmdLower === 'help' || cmdLower === '/help') {
+      const helpLines: LogEntry[] = [
+        { timestamp, type: 'INFO', message: '╔══════════════════════════════════════════════════════════════╗' },
+        { timestamp, type: 'INFO', message: '║               LEO OS — TERMINAL INTERACTIVA                ║' },
+        { timestamp, type: 'INFO', message: '╠══════════════════════════════════════════════════════════════╣' },
+        { timestamp, type: 'SUCCESS', message: '║  help          → Muestra esta pantalla de ayuda             ║' },
+        { timestamp, type: 'SUCCESS', message: '║  clear         → Limpia toda la terminal                    ║' },
+        { timestamp, type: 'SUCCESS', message: '║  ping          → Verifica latencia y estado del backend     ║' },
+        { timestamp, type: 'SUCCESS', message: '║  sysinfo       → Muestra información del sistema Leo OS    ║' },
+        { timestamp, type: 'SUCCESS', message: '║  ls tables     → Lista las tablas de la base de datos       ║' },
+        { timestamp, type: 'SUCCESS', message: '║  count <tabla> → Cuenta registros de una tabla              ║' },
+        { timestamp, type: 'SUCCESS', message: '║  whoami        → Muestra el usuario activo                  ║' },
+        { timestamp, type: 'SUCCESS', message: '║  uptime        → Muestra tiempo de sesión activa            ║' },
+        { timestamp, type: 'SUCCESS', message: '║  nexus trigger → Dispara un log de prueba vía webhook       ║' },
+        { timestamp, type: 'SUCCESS', message: '║  /scan         → Escaneo rápido de workspace                ║' },
+        { timestamp, type: 'SUCCESS', message: '║  /status       → Estado del núcleo                          ║' },
+        { timestamp, type: 'SUCCESS', message: '║  /analyze [t]  → Análisis heurístico profundo               ║' },
+        { timestamp, type: 'SUCCESS', message: '║  /matrix       → Easter egg visual                          ║' },
+        { timestamp, type: 'INFO', message: '╚══════════════════════════════════════════════════════════════╝' },
+      ];
+      setLogs(prev => [...prev, userLog, ...helpLines]);
+      return;
+    }
+
+    // ── clear ──────────────────────────────────────────────────
+    if (cmdLower === 'clear' || cmdLower === '/clear') {
+      setLogs([]);
+      return;
+    }
+
+    // ── ping ───────────────────────────────────────────────────
+    if (cmdLower === 'ping') {
+      setLogs(prev => [...prev, userLog, { timestamp, type: 'INFO', message: 'Enviando ping al backend...' }]);
+      const start = performance.now();
+      try {
+        const projects = await dbService.getProjects();
+        const elapsed = Math.round(performance.now() - start);
+        setLogs(prev => [...prev, 
+          { timestamp: getNowTimestamp(), type: 'SUCCESS', message: `PONG ✓ — Latencia: ${elapsed}ms | Backend: ${supabase ? 'Supabase Cloud' : 'LocalStorage'} | Registros: ${projects.length} proyectos` }
+        ]);
+      } catch {
+        const elapsed = Math.round(performance.now() - start);
+        setLogs(prev => [...prev,
+          { timestamp: getNowTimestamp(), type: 'WARN', message: `PING FAILED ✗ — Timeout: ${elapsed}ms | Sin conexión al backend.` }
+        ]);
+      }
+      return;
+    }
+
+    // ── sysinfo ────────────────────────────────────────────────
+    if (cmdLower === 'sysinfo') {
+      const projects = await dbService.getProjects();
+      const agents = await dbService.getAgents();
+      const subs = await dbService.getSubscriptions();
+      const emails = await dbService.getEmails();
+      const notifs = await dbService.getNotifications();
+
+      const totalCost = subs.reduce((acc, s) => acc + (s.cost || 0), 0);
+
+      const infoLines: LogEntry[] = [
+        { timestamp, type: 'INFO', message: '┌─────────────── SYSTEM INFO ───────────────┐' },
+        { timestamp, type: 'SUCCESS', message: `│  OS          : Leo OS v1.0.0               │` },
+        { timestamp, type: 'SUCCESS', message: `│  Backend     : ${supabase ? 'Supabase Cloud' : 'LocalStorage Fallback'}${supabase ? '         ' : '   '}│` },
+        { timestamp, type: 'SUCCESS', message: `│  Proyectos   : ${String(projects.length).padEnd(28)}│` },
+        { timestamp, type: 'SUCCESS', message: `│  Agentes     : ${String(agents.length).padEnd(28)}│` },
+        { timestamp, type: 'SUCCESS', message: `│  Emails      : ${String(emails.length).padEnd(28)}│` },
+        { timestamp, type: 'SUCCESS', message: `│  Suscripciones: ${String(subs.length).padEnd(27)}│` },
+        { timestamp, type: 'SUCCESS', message: `│  Gasto mensual: $${totalCost.toFixed(2).padEnd(25)}│` },
+        { timestamp, type: 'SUCCESS', message: `│  Notificaciones: ${String(notifs.length).padEnd(26)}│` },
+        { timestamp, type: 'SUCCESS', message: `│  Sesión      : ${new Date().toLocaleString('es-AR').padEnd(28)}│` },
+        { timestamp, type: 'INFO', message: '└───────────────────────────────────────────┘' },
+      ];
+      setLogs(prev => [...prev, userLog, ...infoLines]);
+      return;
+    }
+
+    // ── ls tables ──────────────────────────────────────────────
+    if (cmdLower === 'ls tables' || cmdLower === 'ls') {
+      const tables = ['projects', 'agents', 'emails', 'social_profiles', 'subscriptions', 'agent_logs', 'notifications', 'project_tasks'];
+      const tableLines: LogEntry[] = tables.map(t => ({
+        timestamp, type: 'INFO' as const, message: `  📄 ${t}`
+      }));
+      setLogs(prev => [...prev, userLog, { timestamp, type: 'SYSTEM', message: `${tables.length} tablas encontradas en el esquema:` }, ...tableLines]);
+      return;
+    }
+
+    // ── count <table> ──────────────────────────────────────────
+    if (cmdLower.startsWith('count ')) {
+      const tableName = cmdLower.split(' ')[1];
+      setLogs(prev => [...prev, userLog, { timestamp, type: 'INFO', message: `Contando registros en "${tableName}"...` }]);
+      try {
+        let count = 0;
+        switch (tableName) {
+          case 'projects': count = (await dbService.getProjects()).length; break;
+          case 'agents': count = (await dbService.getAgents()).length; break;
+          case 'emails': count = (await dbService.getEmails()).length; break;
+          case 'social_profiles': count = (await dbService.getSocials()).length; break;
+          case 'subscriptions': count = (await dbService.getSubscriptions()).length; break;
+          case 'agent_logs': count = (await dbService.getAgentLogs()).length; break;
+          case 'notifications': count = (await dbService.getNotifications()).length; break;
+          default:
+            setLogs(prev => [...prev, { timestamp: getNowTimestamp(), type: 'WARN', message: `Tabla "${tableName}" no reconocida. Usa "ls tables" para ver las disponibles.` }]);
+            return;
+        }
+        setLogs(prev => [...prev, { timestamp: getNowTimestamp(), type: 'SUCCESS', message: `SELECT COUNT(*) FROM ${tableName} → ${count} registros.` }]);
+      } catch {
+        setLogs(prev => [...prev, { timestamp: getNowTimestamp(), type: 'WARN', message: `Error al contar registros de "${tableName}".` }]);
+      }
+      return;
+    }
+
+    // ── whoami ─────────────────────────────────────────────────
+    if (cmdLower === 'whoami') {
+      setLogs(prev => [...prev, userLog, { timestamp, type: 'SUCCESS', message: 'leo-macaris@leo-os (Admin / Owner)' }]);
+      return;
+    }
+
+    // ── uptime ─────────────────────────────────────────────────
+    if (cmdLower === 'uptime') {
+      const uptimeMs = performance.now();
+      const uptimeSec = Math.floor(uptimeMs / 1000);
+      const mins = Math.floor(uptimeSec / 60);
+      const secs = uptimeSec % 60;
+      setLogs(prev => [...prev, userLog, { timestamp, type: 'SUCCESS', message: `Sesión activa: ${mins}m ${secs}s | Tab activa desde: ${new Date(Date.now() - uptimeMs).toLocaleTimeString('es-AR')}` }]);
+      return;
+    }
+
+    // ── nexus trigger ──────────────────────────────────────────
+    if (cmdLower === 'nexus trigger') {
+      setLogs(prev => [...prev, userLog, { timestamp, type: 'INFO', message: 'Disparando log de prueba vía webhook /api/webhooks/nexus...' }]);
+      try {
+        await fetch('/api/webhooks/nexus', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'log',
+            level: 'INFO',
+            component: 'Terminal CLI',
+            message: `Manual trigger desde terminal interactiva a las ${getNowTimestamp()}`
+          })
+        });
+        setLogs(prev => [...prev, { timestamp: getNowTimestamp(), type: 'SUCCESS', message: 'Webhook disparado con éxito ✓. Si Supabase Realtime está activo, verás el log aparecer.' }]);
+      } catch {
+        setLogs(prev => [...prev, { timestamp: getNowTimestamp(), type: 'WARN', message: 'Error al disparar webhook. Verifica que el servidor esté corriendo.' }]);
+      }
+      return;
+    }
+
+    // ── Legacy commands (keep backward compat) ─────────────────
+    if (cmdLower === '/scan') {
+      setLogs(prev => [...prev, userLog, { timestamp, type: 'SUCCESS', message: 'Escaneo completo. 4 proyectos, 3 emails, 5 suscripciones. 0 vulnerabilidades.' }]);
+      return;
+    }
+    if (cmdLower === '/status') {
+      setLogs(prev => [...prev, userLog, { timestamp, type: 'SUCCESS', message: `Estado del Núcleo: EXCELENTE. Backend: ${supabase ? 'Supabase Cloud' : 'Local Cache'}. Modo: Producción.` }]);
+      return;
+    }
+    if (cmdLower === '/sync') {
+      setLogs(prev => [...prev, userLog, { timestamp, type: 'SYSTEM', message: 'Forzando sincronización completa... [OK] Caché local sincronizado con éxito.' }]);
+      return;
+    }
+    if (cmdLower.startsWith('/analyze')) {
+      const target = cmdLower.split(' ')[1] || 'sistema global';
+      setLogs(prev => [...prev, userLog, { timestamp, type: 'INFO', message: `Iniciando escaneo heurístico profundo sobre: [${target}]...` }]);
+      setTimeout(() => {
+        setLogs(prev => [...prev, { timestamp: getNowTimestamp(), type: 'SYSTEM', message: `Analizando dependencias y flujos de ${target}... (45%)` }]);
+      }, 1500);
+      setTimeout(() => {
+        setLogs(prev => [...prev, { timestamp: getNowTimestamp(), type: 'SUCCESS', message: `[${target}] Análisis completado. 0 vulnerabilidades críticas detectadas.` }]);
+      }, 3500);
+      return;
+    }
+    if (cmdLower === '/fix') {
+      setLogs(prev => [...prev, userLog, { timestamp, type: 'SYSTEM', message: 'Ejecutando rutinas de auto-reparación y optimización de memoria...' }]);
+      setTimeout(() => {
+        setLogs(prev => [...prev, { timestamp: getNowTimestamp(), type: 'SUCCESS', message: 'Auto-reparación concluida. Memoria liberada: 124MB.' }]);
+      }, 2000);
+      return;
+    }
+    if (cmdLower === '/matrix') {
+      setLogs(prev => [...prev, userLog, { timestamp, type: 'SUCCESS', message: 'Iniciando protocolo visual The Matrix...' }]);
+      const matrixInterval = setInterval(() => {
+        setLogs(prev => [...prev, { timestamp: getNowTimestamp(), type: 'SYSTEM', message: Array.from({length: 40}, () => String.fromCharCode(33 + Math.random() * 94)).join('') }]);
+      }, 100);
+      setTimeout(() => clearInterval(matrixInterval), 1500);
+      return;
+    }
+
+    // ── Unknown command ────────────────────────────────────────
+    setLogs(prev => [...prev, userLog, { 
+      timestamp, type: 'WARN', 
+      message: `Comando no reconocido: "${cmd}". Escribe help para ver las opciones disponibles.` 
+    }]);
+  };
+
+  // Handle form submission
   const handleSendCommand = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputVal.trim()) return;
 
-    const cmd = inputVal.trim().toLowerCase();
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const timestamp = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    // Save to history
+    setCommandHistory(prev => [...prev, inputVal.trim()]);
+    setHistoryIndex(-1);
 
-    // Add the user's input line
-    const userLog: LogEntry = {
-      timestamp,
-      type: 'SYSTEM',
-      message: `USR@LEO-OS:~$ ${inputVal}`
-    };
-
-    let responseLog: LogEntry;
-
-    if (cmd === '/help') {
-      responseLog = {
-        timestamp,
-        type: 'INFO',
-        message: 'Comandos disponibles: /scan, /status, /sync, /clear, /analyze [target], /fix, /matrix.'
-      };
-    } else if (cmd === '/scan') {
-      responseLog = {
-        timestamp,
-        type: 'SUCCESS',
-        message: 'Escaneo completo. 4 proyectos, 3 emails, 5 suscripciones. 0 vulnerabilidades.'
-      };
-    } else if (cmd === '/status') {
-      responseLog = {
-        timestamp,
-        type: 'SUCCESS',
-        message: 'Estado del Núcleo: EXCELENTE. Latencia: 12ms. Modo: Local Cache (Supabase inactivo).'
-      };
-    } else if (cmd === '/sync') {
-      responseLog = {
-        timestamp,
-        type: 'SYSTEM',
-        message: 'Forzando sincronización completa... [OK] Caché local sincronizado con éxito.'
-      };
-    } else if (cmd.startsWith('/analyze')) {
-      const target = cmd.split(' ')[1] || 'sistema global';
-      responseLog = {
-        timestamp,
-        type: 'INFO',
-        message: `Iniciando escaneo heurístico profundo sobre: [${target}]...`
-      };
-      
-      setTimeout(() => {
-        setLogs(prev => [...prev, { timestamp: `${pad(new Date().getHours())}:${pad(new Date().getMinutes())}:${pad(new Date().getSeconds())}`, type: 'SYSTEM', message: `Analizando dependencias y flujos de ${target}... (45%)` }]);
-      }, 1500);
-      setTimeout(() => {
-        setLogs(prev => [...prev, { timestamp: `${pad(new Date().getHours())}:${pad(new Date().getMinutes())}:${pad(new Date().getSeconds())}`, type: 'SUCCESS', message: `[${target}] Análisis completado. 0 vulnerabilidades críticas detectadas.` }]);
-      }, 3500);
-    } else if (cmd === '/fix') {
-      responseLog = {
-        timestamp,
-        type: 'SYSTEM',
-        message: 'Ejecutando rutinas de auto-reparación y optimización de memoria...'
-      };
-      setTimeout(() => {
-        setLogs(prev => [...prev, { timestamp: `${pad(new Date().getHours())}:${pad(new Date().getMinutes())}:${pad(new Date().getSeconds())}`, type: 'SUCCESS', message: 'Auto-reparación concluida. Memoria liberada: 124MB.' }]);
-      }, 2000);
-    } else if (cmd === '/matrix') {
-      responseLog = {
-        timestamp,
-        type: 'SUCCESS',
-        message: 'Iniciando protocolo visual The Matrix...'
-      };
-      const matrixInterval = setInterval(() => {
-        setLogs(prev => [...prev, { timestamp: `${pad(new Date().getHours())}:${pad(new Date().getMinutes())}:${pad(new Date().getSeconds())}`, type: 'SYSTEM', message: Array.from({length: 40}, () => String.fromCharCode(33 + Math.random() * 94)).join('') }]);
-      }, 100);
-      setTimeout(() => clearInterval(matrixInterval), 1500);
-    } else if (cmd === '/clear') {
-      setLogs([]);
-      setInputVal('');
-      return;
-    } else {
-      responseLog = {
-        timestamp,
-        type: 'WARN',
-        message: `Comando no reconocido: "${inputVal}". Escribe /help para ver las opciones.`
-      };
-    }
-
-    setLogs(prev => [...prev, userLog, responseLog]);
+    executeCommand(inputVal);
     setInputVal('');
+  };
+
+  // Handle keyboard navigation (arrow up/down for history)
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (commandHistory.length === 0) return;
+      const newIndex = historyIndex === -1 
+        ? commandHistory.length - 1 
+        : Math.max(0, historyIndex - 1);
+      setHistoryIndex(newIndex);
+      setInputVal(commandHistory[newIndex]);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex === -1) return;
+      const newIndex = historyIndex + 1;
+      if (newIndex >= commandHistory.length) {
+        setHistoryIndex(-1);
+        setInputVal('');
+      } else {
+        setHistoryIndex(newIndex);
+        setInputVal(commandHistory[newIndex]);
+      }
+    }
   };
 
   // Filter logs
@@ -232,15 +395,18 @@ export default function AgentLog() {
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-slate-100 flex items-center gap-2">
             <Terminal className="w-8 h-8 text-purple-400 glow-purple animate-pulse" />
-            OmniAgent Terminal Log
+            Terminal Interactiva
           </h2>
           <p className="text-slate-400 text-sm mt-1">
-            Visualizador interactivo de telemetría y ejecución en segundo plano de OmniAgent.
+            Terminal de comandos con telemetría en tiempo real. Escribe <code className="text-cyan-400 bg-slate-900 px-1.5 py-0.5 rounded text-xs">help</code> para comenzar.
           </p>
         </div>
 
         {/* Action Toggle controls */}
         <div className="flex items-center gap-2">
+          <div className="text-[10px] font-mono text-slate-600 mr-2">
+            {commandHistory.length} cmd{commandHistory.length !== 1 && 's'} en historial
+          </div>
           <button
             onClick={() => setIsSimulating(!isSimulating)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-300 ${
@@ -250,7 +416,7 @@ export default function AgentLog() {
             }`}
           >
             <Play className={`w-3.5 h-3.5 ${isSimulating ? 'animate-spin-slow' : ''}`} />
-            {isSimulating ? 'Generador Activo' : 'Generar Tráfico de Prueba'}
+            {isSimulating ? 'Generador Activo' : 'Generar Tráfico'}
           </button>
 
           <button
@@ -273,7 +439,7 @@ export default function AgentLog() {
               <span className="w-3 h-3 rounded-full bg-amber-500/80"></span>
               <span className="w-3 h-3 rounded-full bg-emerald-500/80"></span>
             </div>
-            <span className="text-xs font-mono text-slate-500 ml-3">OMNIAGENT@LEO-OS: ~/telemetry</span>
+            <span className="text-xs font-mono text-slate-500 ml-3">LEO-OS@TERMINAL: ~/interactive</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -297,11 +463,12 @@ export default function AgentLog() {
         <div 
           ref={logContainerRef}
           className="flex-1 p-6 bg-slate-950/80 font-mono text-sm space-y-2 overflow-y-auto terminal-glow selection:bg-purple-500/30 select-text"
+          onClick={() => inputRef.current?.focus()}
         >
           {filteredLogs.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-2">
               <Cpu className="w-8 h-8 animate-pulse text-purple-600" />
-              <span>Consola vacía. Esperando eventos de telemetría...</span>
+              <span>Consola vacía. Escribe <span className="text-cyan-400">help</span> para ver los comandos disponibles.</span>
             </div>
           ) : (
             filteredLogs.map((log, i) => (
@@ -340,10 +507,12 @@ export default function AgentLog() {
         <form onSubmit={handleSendCommand} className="bg-slate-950/90 border-t border-slate-900 p-4 flex gap-3">
           <span className="text-purple-400 font-mono flex items-center shrink-0">leo-os@omni:~$</span>
           <input
+            ref={inputRef}
             type="text"
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
-            placeholder="Introduce comando (ej: /help, /scan, /status)..."
+            onKeyDown={handleKeyDown}
+            placeholder="Escribe un comando (ej: help, ping, sysinfo, count projects)..."
             className="flex-1 bg-transparent text-cyan-400 font-mono text-sm outline-none focus:ring-0 border-none placeholder-slate-700"
           />
           <button

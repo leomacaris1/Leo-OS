@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { dbService, Agent } from '../lib/supabase';
-import { Bot, Send, User, MessageSquare, Terminal, Cpu, RotateCcw, Activity } from 'lucide-react';
+import { Bot, Send, User, MessageSquare, Terminal, Cpu, RotateCcw, Activity, Zap, WifiOff } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -9,6 +9,8 @@ interface ChatMessage {
   timestamp: Date;
 }
 
+type ApiMode = 'live' | 'simulated' | 'error' | null;
+
 export default function AgentSandbox() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
@@ -16,6 +18,7 @@ export default function AgentSandbox() {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [apiMode, setApiMode] = useState<ApiMode>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -33,18 +36,21 @@ export default function AgentSandbox() {
   }, [selectedAgentId]);
 
   useEffect(() => {
-    // Scroll to bottom whenever messages change
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
   const handleAgentSelect = (id: string) => {
     setSelectedAgentId(id);
-    setMessages([]); // Clear chat on agent switch
+    setMessages([]);
+    setApiMode(null);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || !selectedAgentId) return;
+
+    const activeAgent = agents.find(a => a.id === selectedAgentId);
+    if (!activeAgent) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -53,28 +59,68 @@ export default function AgentSandbox() {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInputValue('');
     setIsTyping(true);
 
-    const activeAgent = agents.find(a => a.id === selectedAgentId);
+    try {
+      // Build the message history for the API
+      const chatHistory = updatedMessages.map(m => ({
+        role: m.role,
+        content: m.content,
+      }));
 
-    // Simulate API delay
-    setTimeout(() => {
-      setIsTyping(false);
-      
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: chatHistory,
+          agentName: activeAgent.name,
+          systemPrompt: activeAgent.system_prompt,
+          model: activeAgent.model,
+        }),
+      });
+
+      const data = await res.json();
+      setApiMode(data.mode as ApiMode);
+
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `[Simulación] He recibido tu mensaje. Actuando bajo mi directiva principal de rol: "${activeAgent?.role}". Mi prompt actual me indica: "${activeAgent?.system_prompt}". Esta es una respuesta generada localmente para probar la interfaz del Sandbox.`,
+        content: data.content,
         timestamp: new Date()
       };
-      
+
       setMessages(prev => [...prev, assistantMessage]);
-    }, 1500 + Math.random() * 1000); // 1.5s to 2.5s delay
+    } catch (error) {
+      console.error('Error calling /api/chat:', error);
+      setApiMode('error');
+
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: '[Error de red] No se pudo conectar con el servidor. Verifica que el servidor de desarrollo esté corriendo.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const selectedAgent = agents.find(a => a.id === selectedAgentId);
+
+  const modeLabel = () => {
+    switch (apiMode) {
+      case 'live': return { text: 'API Live', color: 'text-emerald-400', icon: <Zap className="w-3 h-3 text-emerald-400" /> };
+      case 'simulated': return { text: 'Simulación Local', color: 'text-amber-400', icon: <WifiOff className="w-3 h-3 text-amber-400" /> };
+      case 'error': return { text: 'Error API', color: 'text-rose-400', icon: <WifiOff className="w-3 h-3 text-rose-400" /> };
+      default: return { text: 'Esperando...', color: 'text-slate-500', icon: <Activity className="w-3 h-3 text-slate-500" /> };
+    }
+  };
+
+  const mode = modeLabel();
 
   return (
     <div className="flex h-[calc(100vh-8rem)] bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl relative z-10">
@@ -86,7 +132,7 @@ export default function AgentSandbox() {
             <Cpu className="w-5 h-5 text-cyan-400" />
             <h2 className="text-lg font-bold text-slate-200">Sandbox</h2>
           </div>
-          <p className="text-xs text-slate-500">Prueba y entrena a tus agentes localmente.</p>
+          <p className="text-xs text-slate-500">Prueba y entrena a tus agentes con IA real.</p>
         </div>
         
         <div className="flex-1 overflow-y-auto p-3">
@@ -147,8 +193,8 @@ export default function AgentSandbox() {
                 <div>
                   <h3 className="text-slate-200 font-bold leading-tight">{selectedAgent.name}</h3>
                   <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <Activity className="w-3 h-3 text-emerald-400" /> Simulación Local
+                    <span className={`flex items-center gap-1 ${mode.color}`}>
+                      {mode.icon} {mode.text}
                     </span>
                     <span>•</span>
                     <span className="font-mono">{selectedAgent.model}</span>
@@ -157,7 +203,7 @@ export default function AgentSandbox() {
               </div>
               
               <button 
-                onClick={() => setMessages([])}
+                onClick={() => { setMessages([]); setApiMode(null); }}
                 className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-slate-200 bg-slate-800/50 hover:bg-slate-800 px-3 py-1.5 rounded-full transition-colors border border-slate-700/50"
               >
                 <RotateCcw className="w-3.5 h-3.5" /> Limpiar Sesión
@@ -171,7 +217,7 @@ export default function AgentSandbox() {
                   <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
                   <p className="text-lg font-medium text-slate-400">Comienza a chatear con {selectedAgent.name}</p>
                   <p className="text-sm text-slate-600 max-w-sm text-center mt-2">
-                    Las respuestas serán simuladas usando el prompt del sistema: <br/>
+                    Las respuestas se generarán vía API si tienes <code className="text-cyan-500/70">GEMINI_API_KEY</code> en <code className="text-cyan-500/70">.env.local</code>. <br/>
                     <span className="text-xs font-mono text-cyan-500/70 mt-2 block bg-cyan-950/20 p-2 rounded-lg border border-cyan-500/10">&quot;{selectedAgent.system_prompt}&quot;</span>
                   </p>
                 </div>
@@ -230,7 +276,11 @@ export default function AgentSandbox() {
               </form>
               <div className="text-center mt-2">
                 <span className="text-[10px] text-slate-600 flex items-center justify-center gap-1">
-                  <Terminal className="w-3 h-3" /> Las interacciones son simuladas localmente y no consumen créditos de API.
+                  <Terminal className="w-3 h-3" />
+                  {apiMode === 'live' 
+                    ? 'Conectado a Google Gemini API — las respuestas son generadas por IA.'
+                    : 'Configura GEMINI_API_KEY en .env.local para activar respuestas reales de IA.'
+                  }
                 </span>
               </div>
             </div>
