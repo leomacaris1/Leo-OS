@@ -156,6 +156,8 @@ export default function ProjectDetailsDrawer({ project, onClose, onUpdateProject
                   type="text"
                   value={editName}
                   onChange={e => setEditName(e.target.value)}
+                  title="Nombre del proyecto"
+                  placeholder="Nombre del proyecto"
                   className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm"
                 />
               </div>
@@ -165,6 +167,7 @@ export default function ProjectDetailsDrawer({ project, onClose, onUpdateProject
                 <select 
                   value={editStatus}
                   onChange={e => setEditStatus(e.target.value)}
+                  title="Estado del proyecto"
                   className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm"
                 >
                   <option value="🟢 Full Green">🟢 Full Green</option>
@@ -182,6 +185,8 @@ export default function ProjectDetailsDrawer({ project, onClose, onUpdateProject
                 <textarea 
                   value={editDescription}
                   onChange={e => setEditDescription(e.target.value)}
+                  title="Misión o descripción del proyecto"
+                  placeholder="Misión o descripción del proyecto"
                   className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm min-h-[60px]"
                 />
               </div>
@@ -192,6 +197,8 @@ export default function ProjectDetailsDrawer({ project, onClose, onUpdateProject
                   type="text"
                   value={editTags}
                   onChange={e => setEditTags(e.target.value)}
+                  title="Stack Tecnológico"
+                  placeholder="Stack Tecnológico"
                   className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm"
                 />
               </div>
@@ -203,6 +210,8 @@ export default function ProjectDetailsDrawer({ project, onClose, onUpdateProject
                     type="url"
                     value={editRepoUrl}
                     onChange={e => setEditRepoUrl(e.target.value)}
+                    title="URL del Repositorio"
+                    placeholder="https://github.com/..."
                     className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm"
                   />
                 </div>
@@ -212,6 +221,8 @@ export default function ProjectDetailsDrawer({ project, onClose, onUpdateProject
                     type="url"
                     value={editLiveUrl}
                     onChange={e => setEditLiveUrl(e.target.value)}
+                    title="URL del sitio en vivo"
+                    placeholder="https://vercel.app/..."
                     className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/50 text-sm"
                   />
                 </div>
@@ -219,6 +230,7 @@ export default function ProjectDetailsDrawer({ project, onClose, onUpdateProject
 
               <button
                 onClick={handleSaveChanges}
+                title="Guardar cambios del proyecto"
                 className="w-full mt-2 bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-bold p-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]"
               >
                 <Save className="w-4 h-4" />
@@ -304,9 +316,13 @@ export default function ProjectDetailsDrawer({ project, onClose, onUpdateProject
           </div>
 
           <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+            <style>{`
+              .progress-bar-fill-drawer {
+                width: ${progressPercent}%;
+              }
+            `}</style>
             <div 
-              style={{ width: `${progressPercent}%` }}
-              className="h-full bg-gradient-to-r from-cyan-500 to-teal-400 transition-all duration-500"
+              className="h-full bg-gradient-to-r from-cyan-500 to-teal-400 transition-all duration-500 progress-bar-fill-drawer"
             />
           </div>
 
@@ -316,12 +332,15 @@ export default function ProjectDetailsDrawer({ project, onClose, onUpdateProject
               type="text"
               value={newTaskDesc}
               onChange={e => setNewTaskDesc(e.target.value)}
+              title="Añadir nuevo objetivo"
               placeholder="Añadir nuevo objetivo..."
               className="flex-1 bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500/30 text-sm placeholder-slate-600"
             />
             <button 
               type="submit"
               disabled={!newTaskDesc.trim()}
+              title="Registrar objetivo"
+              aria-label="Registrar objetivo"
               className="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-3.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
             >
               <Plus className="w-4 h-4" />

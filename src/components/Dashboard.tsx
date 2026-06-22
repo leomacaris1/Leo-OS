@@ -157,15 +157,19 @@ export default function Dashboard({ projects, subscriptions, notifications, back
                         <span className="text-xs font-mono text-cyan-500 ml-2 shrink-0">{project.progress}%</span>
                       </div>
                       <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                        <style>{`
+                          .dashboard-progress-fill-${project.id} {
+                            width: ${project.progress}%;
+                          }
+                        `}</style>
                         <div 
-                          className={`h-full rounded-full transition-all duration-700 ease-out bg-gradient-to-r ${
+                          className={`h-full rounded-full transition-all duration-700 ease-out bg-gradient-to-r dashboard-progress-fill-${project.id} ${
                             project.progress >= 80 
                               ? 'from-cyan-500 to-emerald-500' 
                               : project.progress >= 50 
                                 ? 'from-cyan-500 to-purple-500' 
                                 : 'from-amber-500 to-red-500'
                           }`}
-                          style={{ width: `${project.progress}%` }}
                         ></div>
                       </div>
                       <div className="flex items-center gap-2 mt-1.5">
@@ -191,9 +195,13 @@ export default function Dashboard({ projects, subscriptions, notifications, back
                 <span className="text-sm font-bold font-mono text-cyan-400">{avgProgress}%</span>
               </div>
               <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                <style>{`
+                  .dashboard-avg-progress-fill {
+                    width: ${avgProgress}%;
+                  }
+                `}</style>
                 <div 
-                  className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(6,182,212,0.5)]"
-                  style={{ width: `${avgProgress}%` }}
+                  className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(6,182,212,0.5)] dashboard-avg-progress-fill"
                 ></div>
               </div>
             </div>
