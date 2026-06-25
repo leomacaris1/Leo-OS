@@ -173,6 +173,66 @@ const setLocalData = <T>(key: string, data: T[]): void => {
   }
 };
 
+// All mutations (insert/update/delete) go through these server-side helpers
+// instead of querying Supabase directly with the public anon key. The API
+// route uses the service-role key, which keeps write/delete access out of
+// reach of anyone who only has the (publicly bundled) anon key.
+const apiInsert = async <T>(table: string, payload: object): Promise<T | null> => {
+  try {
+    const res = await fetch(`/api/db/${table}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      console.warn(`API insert failed for ${table}:`, await res.text());
+      return null;
+    }
+    return (await res.json()) as T;
+  } catch (err) {
+    console.error(`API insert error for ${table}:`, err);
+    return null;
+  }
+};
+
+const apiUpdate = async <T>(table: string, id: string, updates: object): Promise<T | null> => {
+  try {
+    const res = await fetch(`/api/db/${table}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, updates }),
+    });
+    if (!res.ok) {
+      console.warn(`API update failed for ${table}:`, await res.text());
+      return null;
+    }
+    return (await res.json()) as T;
+  } catch (err) {
+    console.error(`API update error for ${table}:`, err);
+    return null;
+  }
+};
+
+const apiDelete = async (table: string, id: string): Promise<boolean> => {
+  try {
+    const res = await fetch(`/api/db/${table}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    return res.ok;
+  } catch (err) {
+    console.error(`API delete error for ${table}:`, err);
+    return false;
+  }
+};
+
+const apiDeleteAll = async (table: string): Promise<boolean> => {
+  try {
+    const res = await fetch(`/api/db/${table}?all=true`, { method: 'DELETE' });
+    return res.ok;
+  } catch (err) {
+    console.error(`API delete-all error for ${table}:`, err);
+    return false;
+  }
+};
+
 // Helper to mimic the Supabase trigger for project progress in local storage
 const _recalculateLocalProjectProgress = (projectId: string) => {
   const tasks = getLocalData<ProjectTask>('leo-os-tasks', INITIAL_PROJECT_TASKS).filter(t => t.project_id === projectId);
@@ -221,29 +281,18 @@ export const dbService = {
 
   async updateProject(id: string, updates: Partial<Project>): Promise<Project> {
     if (supabase) {
-      try {
-        // If the ID is a local mock ID (e.g. 'p1'), we should find the database equivalent or create it, 
-        // but for general development updates we try directly.
-        const { data, error } = await supabase
-          .from('projects')
-          .update(updates)
-          .eq('id', id)
-          .select();
-
-        if (!error && data && data.length > 0) {
-          // Sync local storage
-          const local = getLocalData<Project>('leo-os-projects', INITIAL_PROJECTS);
-          const idx = local.findIndex(p => p.id === id);
-          if (idx !== -1) {
-            local[idx] = { ...local[idx], ...updates };
-            setLocalData('leo-os-projects', local);
-          }
-          return data[0] as Project;
+      const data = await apiUpdate<Project>('projects', id, updates);
+      if (data) {
+        // Sync local storage
+        const local = getLocalData<Project>('leo-os-projects', INITIAL_PROJECTS);
+        const idx = local.findIndex(p => p.id === id);
+        if (idx !== -1) {
+          local[idx] = { ...local[idx], ...updates };
+          setLocalData('leo-os-projects', local);
         }
-        console.warn('Supabase update failed, updating local storage:', error);
-      } catch (err) {
-        console.error('Supabase connection failed during update:', err);
+        return data;
       }
+      console.warn('Supabase update failed, updating local storage');
     }
 
     // LocalStorage edit
@@ -264,23 +313,14 @@ export const dbService = {
     };
 
     if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('projects')
-          .insert([newProject])
-          .select();
-        
-        if (!error && data && data.length > 0) {
-          const created = data[0] as Project;
-          const local = getLocalData<Project>('leo-os-projects', INITIAL_PROJECTS);
-          local.push(created);
-          setLocalData('leo-os-projects', local);
-          return created;
-        }
-        console.warn('Supabase insert failed, inserting local:', error);
-      } catch (err) {
-        console.error('Supabase connection failed during insert:', err);
+      const created = await apiInsert<Project>('projects', newProject);
+      if (created) {
+        const local = getLocalData<Project>('leo-os-projects', INITIAL_PROJECTS);
+        local.push(created);
+        setLocalData('leo-os-projects', local);
+        return created;
       }
+      console.warn('Supabase insert failed, inserting local');
     }
 
     const localProject = { ...project, id: `p_${Date.now()}` };
@@ -317,18 +357,9 @@ export const dbService = {
 
   async createProjectTask(task: Omit<ProjectTask, 'id'>): Promise<ProjectTask | null> {
     if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('project_tasks')
-          .insert([task])
-          .select();
-        if (!error && data && data.length > 0) {
-          return data[0] as ProjectTask;
-        }
-        console.error('Error creating task:', error);
-      } catch (err) {
-        console.error(err);
-      }
+      const created = await apiInsert<ProjectTask>('project_tasks', task);
+      if (created) return created;
+      console.error('Error creating task');
     }
     
     const localTask: ProjectTask = {
@@ -345,18 +376,8 @@ export const dbService = {
 
   async updateProjectTask(id: string, updates: Partial<ProjectTask>): Promise<ProjectTask | null> {
     if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('project_tasks')
-          .update(updates)
-          .eq('id', id)
-          .select();
-        if (!error && data && data.length > 0) {
-          return data[0] as ProjectTask;
-        }
-      } catch (err) {
-        console.error(err);
-      }
+      const updated = await apiUpdate<ProjectTask>('project_tasks', id, updates);
+      if (updated) return updated;
     }
     
     const local = getLocalData<ProjectTask>('leo-os-tasks', INITIAL_PROJECT_TASKS);
@@ -372,12 +393,8 @@ export const dbService = {
 
   async deleteProjectTask(id: string): Promise<void> {
     if (supabase) {
-      try {
-        await supabase.from('project_tasks').delete().eq('id', id);
-        return;
-      } catch (err) {
-        console.error(err);
-      }
+      const ok = await apiDelete('project_tasks', id);
+      if (ok) return;
     }
     
     const local = getLocalData<ProjectTask>('leo-os-tasks', INITIAL_PROJECT_TASKS);
@@ -414,20 +431,12 @@ export const dbService = {
 
   async createEmail(email: Omit<EmailAccount, 'id'>): Promise<EmailAccount> {
     if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('emails')
-          .insert([email])
-          .select();
-        if (!error && data && data.length > 0) {
-          const created = data[0] as EmailAccount;
-          const local = getLocalData<EmailAccount>('leo-os-emails', INITIAL_EMAILS);
-          local.push(created);
-          setLocalData('leo-os-emails', local);
-          return created;
-        }
-      } catch (err) {
-        console.error(err);
+      const created = await apiInsert<EmailAccount>('emails', email);
+      if (created) {
+        const local = getLocalData<EmailAccount>('leo-os-emails', INITIAL_EMAILS);
+        local.push(created);
+        setLocalData('leo-os-emails', local);
+        return created;
       }
     }
     const localEmail = { ...email, id: `e_${Date.now()}` };
@@ -439,23 +448,15 @@ export const dbService = {
 
   async updateEmail(id: string, updates: Partial<EmailAccount>): Promise<EmailAccount> {
     if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('emails')
-          .update(updates)
-          .eq('id', id)
-          .select();
-        if (!error && data && data.length > 0) {
-          const local = getLocalData<EmailAccount>('leo-os-emails', INITIAL_EMAILS);
-          const idx = local.findIndex(e => e.id === id);
-          if (idx !== -1) {
-            local[idx] = { ...local[idx], ...updates };
-            setLocalData('leo-os-emails', local);
-          }
-          return data[0] as EmailAccount;
+      const data = await apiUpdate<EmailAccount>('emails', id, updates);
+      if (data) {
+        const local = getLocalData<EmailAccount>('leo-os-emails', INITIAL_EMAILS);
+        const idx = local.findIndex(e => e.id === id);
+        if (idx !== -1) {
+          local[idx] = { ...local[idx], ...updates };
+          setLocalData('leo-os-emails', local);
         }
-      } catch (err) {
-        console.error('Supabase connection failed during email update:', err);
+        return data;
       }
     }
     const local = getLocalData<EmailAccount>('leo-os-emails', INITIAL_EMAILS);
@@ -470,19 +471,12 @@ export const dbService = {
 
   async deleteEmail(id: string): Promise<boolean> {
     if (supabase) {
-      try {
-        const { error } = await supabase
-          .from('emails')
-          .delete()
-          .eq('id', id);
-        if (!error) {
-          const local = getLocalData<EmailAccount>('leo-os-emails', INITIAL_EMAILS);
-          const filtered = local.filter(e => e.id !== id);
-          setLocalData('leo-os-emails', filtered);
-          return true;
-        }
-      } catch (err) {
-        console.error(err);
+      const ok = await apiDelete('emails', id);
+      if (ok) {
+        const local = getLocalData<EmailAccount>('leo-os-emails', INITIAL_EMAILS);
+        const filtered = local.filter(e => e.id !== id);
+        setLocalData('leo-os-emails', filtered);
+        return true;
       }
     }
     const local = getLocalData<EmailAccount>('leo-os-emails', INITIAL_EMAILS);
@@ -515,20 +509,12 @@ export const dbService = {
 
   async createSocial(social: Omit<SocialProfile, 'id'>): Promise<SocialProfile> {
     if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('social_profiles')
-          .insert([social])
-          .select();
-        if (!error && data && data.length > 0) {
-          const created = data[0] as SocialProfile;
-          const local = getLocalData<SocialProfile>('leo-os-socials', INITIAL_SOCIALS);
-          local.push(created);
-          setLocalData('leo-os-socials', local);
-          return created;
-        }
-      } catch (err) {
-        console.error(err);
+      const created = await apiInsert<SocialProfile>('social_profiles', social);
+      if (created) {
+        const local = getLocalData<SocialProfile>('leo-os-socials', INITIAL_SOCIALS);
+        local.push(created);
+        setLocalData('leo-os-socials', local);
+        return created;
       }
     }
     const localSocial = { ...social, id: `s_${Date.now()}` };
@@ -540,23 +526,15 @@ export const dbService = {
 
   async updateSocial(id: string, updates: Partial<SocialProfile>): Promise<SocialProfile> {
     if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('social_profiles')
-          .update(updates)
-          .eq('id', id)
-          .select();
-        if (!error && data && data.length > 0) {
-          const local = getLocalData<SocialProfile>('leo-os-socials', INITIAL_SOCIALS);
-          const idx = local.findIndex(s => s.id === id);
-          if (idx !== -1) {
-            local[idx] = { ...local[idx], ...updates };
-            setLocalData('leo-os-socials', local);
-          }
-          return data[0] as SocialProfile;
+      const data = await apiUpdate<SocialProfile>('social_profiles', id, updates);
+      if (data) {
+        const local = getLocalData<SocialProfile>('leo-os-socials', INITIAL_SOCIALS);
+        const idx = local.findIndex(s => s.id === id);
+        if (idx !== -1) {
+          local[idx] = { ...local[idx], ...updates };
+          setLocalData('leo-os-socials', local);
         }
-      } catch (err) {
-        console.error('Supabase connection failed during social update:', err);
+        return data;
       }
     }
     const local = getLocalData<SocialProfile>('leo-os-socials', INITIAL_SOCIALS);
@@ -571,19 +549,12 @@ export const dbService = {
 
   async deleteSocial(id: string): Promise<boolean> {
     if (supabase) {
-      try {
-        const { error } = await supabase
-          .from('social_profiles')
-          .delete()
-          .eq('id', id);
-        if (!error) {
-          const local = getLocalData<SocialProfile>('leo-os-socials', INITIAL_SOCIALS);
-          const filtered = local.filter(s => s.id !== id);
-          setLocalData('leo-os-socials', filtered);
-          return true;
-        }
-      } catch (err) {
-        console.error(err);
+      const ok = await apiDelete('social_profiles', id);
+      if (ok) {
+        const local = getLocalData<SocialProfile>('leo-os-socials', INITIAL_SOCIALS);
+        const filtered = local.filter(s => s.id !== id);
+        setLocalData('leo-os-socials', filtered);
+        return true;
       }
     }
     const local = getLocalData<SocialProfile>('leo-os-socials', INITIAL_SOCIALS);
@@ -621,20 +592,13 @@ export const dbService = {
 
   async createSubscription(sub: Omit<Subscription, 'id'>): Promise<Subscription> {
     if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('subscriptions')
-          .insert([sub])
-          .select();
-        if (!error && data && data.length > 0) {
-          const created = { ...data[0], cost: Number(data[0].cost) } as Subscription;
-          const local = getLocalData<Subscription>('leo-os-subs', INITIAL_SUBSCRIPTIONS);
-          local.push(created);
-          setLocalData('leo-os-subs', local);
-          return created;
-        }
-      } catch (err) {
-        console.error(err);
+      const data = await apiInsert<Subscription>('subscriptions', sub);
+      if (data) {
+        const created = { ...data, cost: Number(data.cost) } as Subscription;
+        const local = getLocalData<Subscription>('leo-os-subs', INITIAL_SUBSCRIPTIONS);
+        local.push(created);
+        setLocalData('leo-os-subs', local);
+        return created;
       }
     }
     const localSub = { ...sub, id: `sub_${Date.now()}` };
@@ -646,24 +610,16 @@ export const dbService = {
 
   async updateSubscription(id: string, updates: Partial<Subscription>): Promise<Subscription> {
     if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('subscriptions')
-          .update(updates)
-          .eq('id', id)
-          .select();
-        if (!error && data && data.length > 0) {
-          const updated = { ...data[0], cost: Number(data[0].cost) } as Subscription;
-          const local = getLocalData<Subscription>('leo-os-subs', INITIAL_SUBSCRIPTIONS);
-          const idx = local.findIndex(s => s.id === id);
-          if (idx !== -1) {
-            local[idx] = updated;
-            setLocalData('leo-os-subs', local);
-          }
-          return updated;
+      const data = await apiUpdate<Subscription>('subscriptions', id, updates);
+      if (data) {
+        const updated = { ...data, cost: Number(data.cost) } as Subscription;
+        const local = getLocalData<Subscription>('leo-os-subs', INITIAL_SUBSCRIPTIONS);
+        const idx = local.findIndex(s => s.id === id);
+        if (idx !== -1) {
+          local[idx] = updated;
+          setLocalData('leo-os-subs', local);
         }
-      } catch (err) {
-        console.error('Supabase connection failed during subscription update:', err);
+        return updated;
       }
     }
     const local = getLocalData<Subscription>('leo-os-subs', INITIAL_SUBSCRIPTIONS);
@@ -678,19 +634,12 @@ export const dbService = {
 
   async deleteSubscription(id: string): Promise<boolean> {
     if (supabase) {
-      try {
-        const { error } = await supabase
-          .from('subscriptions')
-          .delete()
-          .eq('id', id);
-        if (!error) {
-          const local = getLocalData<Subscription>('leo-os-subs', INITIAL_SUBSCRIPTIONS);
-          const filtered = local.filter(s => s.id !== id);
-          setLocalData('leo-os-subs', filtered);
-          return true;
-        }
-      } catch (err) {
-        console.error(err);
+      const ok = await apiDelete('subscriptions', id);
+      if (ok) {
+        const local = getLocalData<Subscription>('leo-os-subs', INITIAL_SUBSCRIPTIONS);
+        const filtered = local.filter(s => s.id !== id);
+        setLocalData('leo-os-subs', filtered);
+        return true;
       }
     }
     const local = getLocalData<Subscription>('leo-os-subs', INITIAL_SUBSCRIPTIONS);
@@ -721,19 +670,12 @@ export const dbService = {
 
   async clearAgentLogs(): Promise<boolean> {
     if (supabase) {
-      try {
-        const { error } = await supabase
-          .from('agent_logs')
-          .delete()
-          .neq('id', '00000000-0000-0000-0000-000000000000'); // delete all
-        if (!error) {
-          setLocalData('leo-os-agent-logs', []);
-          return true;
-        }
-        console.error('Failed to clear Supabase agent logs:', error);
-      } catch (err) {
-        console.error(err);
+      const ok = await apiDeleteAll('agent_logs');
+      if (ok) {
+        setLocalData('leo-os-agent-logs', []);
+        return true;
       }
+      console.error('Failed to clear Supabase agent logs');
     }
     setLocalData('leo-os-agent-logs', []);
     return true;
@@ -764,14 +706,7 @@ export const dbService = {
 
   async markNotificationAsRead(id: string): Promise<void> {
     if (supabase) {
-      try {
-        await supabase
-          .from('notifications')
-          .update({ read: true })
-          .eq('id', id);
-      } catch (err) {
-        console.error(err);
-      }
+      await apiUpdate('notifications', id, { read: true });
     }
     const local = getLocalData<AppNotification>('leo-os-notifications', INITIAL_NOTIFICATIONS);
     const idx = local.findIndex(n => n.id === id);
@@ -788,20 +723,11 @@ export const dbService = {
     };
 
     if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('notifications')
-          .insert([newNotif])
-          .select();
-        if (!error && data && data.length > 0) {
-          return data[0] as AppNotification;
-        }
-      } catch (err) {
-        console.error(err);
-      }
+      const created = await apiInsert<AppNotification>('notifications', newNotif);
+      if (created) return created;
     }
-    
-    const localNotif: AppNotification = { 
+
+    const localNotif: AppNotification = {
       ...newNotif, 
       id: `n_${Date.now()}`, 
       created_at: new Date().toISOString() 
@@ -842,29 +768,20 @@ export const dbService = {
 
   async createAgent(agent: Omit<Agent, 'id' | 'created_at'>): Promise<Agent | null> {
     if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('agents')
-          .insert([agent])
-          .select();
-        
-        if (!error && data && data.length > 0) {
-          const created = data[0] as Agent;
-          const local = getLocalData<Agent>('leo-os-agents', []);
-          local.unshift(created);
-          setLocalData('leo-os-agents', local);
-          
-          // Log creation via the unified service
-          await this.createAgentLog({
-            level: 'system',
-            component: 'AgentBuilder',
-            message: `Nuevo agente instanciado: ${agent.name} (${agent.role})`
-          });
-          
-          return created;
-        }
-      } catch (err) {
-        console.error(err);
+      const created = await apiInsert<Agent>('agents', agent);
+      if (created) {
+        const local = getLocalData<Agent>('leo-os-agents', []);
+        local.unshift(created);
+        setLocalData('leo-os-agents', local);
+
+        // Log creation via the unified service
+        await this.createAgentLog({
+          level: 'system',
+          component: 'AgentBuilder',
+          message: `Nuevo agente instanciado: ${agent.name} (${agent.role})`
+        });
+
+        return created;
       }
     }
     
@@ -882,24 +799,15 @@ export const dbService = {
 
   async updateAgent(id: string, updates: Partial<Agent>): Promise<Agent> {
     if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('agents')
-          .update(updates)
-          .eq('id', id)
-          .select();
-        
-        if (!error && data && data.length > 0) {
-          const local = getLocalData<Agent>('leo-os-agents', []);
-          const idx = local.findIndex(a => a.id === id);
-          if (idx !== -1) {
-            local[idx] = data[0] as Agent;
-            setLocalData('leo-os-agents', local);
-          }
-          return data[0] as Agent;
+      const data = await apiUpdate<Agent>('agents', id, updates);
+      if (data) {
+        const local = getLocalData<Agent>('leo-os-agents', []);
+        const idx = local.findIndex(a => a.id === id);
+        if (idx !== -1) {
+          local[idx] = data;
+          setLocalData('leo-os-agents', local);
         }
-      } catch (err) {
-        console.error(err);
+        return data;
       }
     }
     const local = getLocalData<Agent>('leo-os-agents', []);
@@ -914,15 +822,11 @@ export const dbService = {
 
   async deleteAgent(id: string): Promise<boolean> {
     if (supabase) {
-      try {
-        const { error } = await supabase.from('agents').delete().eq('id', id);
-        if (!error) {
-          const local = getLocalData<Agent>('leo-os-agents', []);
-          setLocalData('leo-os-agents', local.filter(a => a.id !== id));
-          return true;
-        }
-      } catch (err) {
-        console.error(err);
+      const ok = await apiDelete('agents', id);
+      if (ok) {
+        const local = getLocalData<Agent>('leo-os-agents', []);
+        setLocalData('leo-os-agents', local.filter(a => a.id !== id));
+        return true;
       }
     }
     const local = getLocalData<Agent>('leo-os-agents', []);
@@ -933,12 +837,8 @@ export const dbService = {
   // Helper inside dbService to create logs properly
   async createAgentLog(log: Omit<AgentLogEntry, 'id' | 'created_at'>): Promise<void> {
     if (supabase) {
-      try {
-        await supabase.from('agent_logs').insert([log]);
-        return;
-      } catch (err) {
-        console.error(err);
-      }
+      const created = await apiInsert('agent_logs', log);
+      if (created) return;
     }
     const localLog: AgentLogEntry = {
       ...log,

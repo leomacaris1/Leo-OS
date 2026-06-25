@@ -1,6 +1,6 @@
 # 🌌 Leo OS — Personal Management Dashboard & Telemetry Center
 
-[![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38bdf8?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-Database-3ecf8e?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
@@ -160,8 +160,9 @@ Para conectarla a tu nube:
 
 1. Ingresa a tu panel en [Supabase](https://supabase.com).
 2. Dirígete a la pestaña **SQL Editor**.
-3. Ejecuta primero los contenidos del esquema base: [supabase_schema.sql](file:///c:/Users/leoma/Desktop/Proyectos%20Activos/Leo%20OS/supabase_schema.sql).
-4. Luego, ejecuta el script de migración v2: [migration_v2_audit.sql](file:///c:/Users/leoma/Desktop/Proyectos%20Activos/Leo%20OS/migration_v2_audit.sql) para actualizar las tablas con la columna de descripciones y el soporte libre de emojis de estado.
+3. Ejecuta primero los contenidos del esquema base: `supabase_schema.sql`.
+4. Luego, ejecuta en orden las migraciones: `migration_v2_audit.sql`, `migration_v3.sql`, `migration_v4_tasks.sql`, `migration_v5_agents.sql`, `agent_logs_schema.sql`, `notifications_schema.sql` y finalmente `migration_v6_lock_down_writes.sql`.
+5. **Importante:** `migration_v6_lock_down_writes.sql` cierra el acceso de escritura/borrado público a todas las tablas (antes cualquiera con la anon key pública podía escribir o borrar tus datos). Tras aplicarla, todas las escrituras de la app pasan por las rutas server-side `/api/db/[table]`, que usan `SUPABASE_SERVICE_ROLE_KEY`. Asegúrate de definir esa variable de entorno (ver más abajo) antes de aplicar esta migración, o las creaciones/ediciones desde la UI dejarán de persistir en la nube.
 
 ### 2. Configurar Variables de Entorno
 
