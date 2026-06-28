@@ -173,13 +173,24 @@ NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-de-acceso-publico
 SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key-solo-en-servidor
 NEXUS_WEBHOOK_SECRET=un-secreto-largo-para-omniagent
+ADMIN_PASSWORD=una-contraseña-fuerte-para-entrar-a-la-app
 ```
 
 ### 3. Reiniciar el Servidor
 
 Reinicia el servidor de desarrollo (`npm run dev`). La etiqueta en la parte superior derecha de tu app cambiará automáticamente de **LOCAL CACHE MIRROR** a **SUPABASE CLOUD ACTIVE**. ¡Todas tus creaciones, modificaciones e interacciones se guardarán ahora en tiempo real en la nube!
 
-### 4. Conectar OmniAgent al Webhook Nexus
+### 4. Protección por Contraseña (Gate de Acceso)
+
+Como Leo OS es una app de un solo usuario y la `ANON_KEY` de Supabase viaja en el bundle del navegador, toda la aplicación queda protegida por una contraseña única antes de mostrar cualquier dato:
+
+1. Define `ADMIN_PASSWORD` en tu `.env.local` (o en las variables de entorno de Vercel) con una contraseña fuerte.
+2. Al visitar cualquier ruta de la app sin sesión válida, el middleware (`src/middleware.ts`) redirige a `/login`.
+3. Tras ingresar la contraseña correcta, se emite una cookie de sesión firmada (HMAC-SHA256, válida 7 días) y se puede cerrar sesión desde **Configuración → Sesión → Cerrar Sesión**.
+4. Si `ADMIN_PASSWORD` no está configurada, el gate solo se desactiva automáticamente en desarrollo (`NODE_ENV !== "production"`); en producción sin esa variable, todas las rutas quedan bloqueadas por seguridad.
+5. El webhook `/api/webhooks/nexus` no pasa por este gate, ya que usa su propio secreto (`NEXUS_WEBHOOK_SECRET`).
+
+### 5. Conectar OmniAgent al Webhook Nexus
 
 Leo OS expone `POST /api/webhooks/nexus` para recibir telemetría real de OmniAgent y guardarla en `agent_logs`. Si incluyes `notify: true` o `event: "notification"`, también creará una notificación en `notifications`.
 

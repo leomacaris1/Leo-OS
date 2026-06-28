@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Palette, Zap, Database, Check } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Settings as SettingsIcon, Palette, Zap, Database, Check, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 type ThemeType = 'cyberpunk' | 'matrix' | 'crimson';
@@ -198,8 +199,46 @@ export default function Settings() {
 
           {/* API Keys Settings */}
           <ApiKeysSection />
+
+          {/* Session */}
+          <SessionSection />
         </div>
       </div>
+    </div>
+  );
+}
+
+function SessionSection() {
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      router.push('/login');
+      router.refresh();
+    }
+  };
+
+  return (
+    <div className="glass-card rounded-2xl p-6 border border-slate-800/60">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-slate-500/10 rounded-lg">
+          <LogOut className="w-5 h-5 text-slate-400" />
+        </div>
+        <h3 className="text-lg font-bold text-slate-200">Sesión</h3>
+      </div>
+
+      <button
+        onClick={handleLogout}
+        disabled={isLoggingOut}
+        className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border text-sm font-bold transition-all duration-300 bg-rose-950/20 border-rose-500/40 text-rose-400 hover:bg-rose-950/40 disabled:opacity-50"
+      >
+        <LogOut className="w-4 h-4" />
+        {isLoggingOut ? 'Cerrando sesión…' : 'Cerrar Sesión'}
+      </button>
     </div>
   );
 }
